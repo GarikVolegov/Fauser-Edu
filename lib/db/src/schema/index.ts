@@ -7,3 +7,5 @@ export * from "./assignments";
 export * from "./materials";
 export * from "./events";
 export * from "./announcements";
+export * from "./emailAccounts";
+export * from "./classMessages";

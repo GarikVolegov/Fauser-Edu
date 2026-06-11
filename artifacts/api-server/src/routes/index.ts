@@ -10,6 +10,8 @@ import materialsRouter from "./materials";
 import eventsRouter from "./events";
 import announcementsRouter from "./announcements";
 import dashboardRouter from "./dashboard";
+import emailRouter from "./email";
+import groupsRouter from "./groups";
 
 const router: IRouter = Router();
 
@@ -24,5 +26,7 @@ router.use("/materials", materialsRouter);
 router.use("/events", eventsRouter);
 router.use("/announcements", announcementsRouter);
 router.use("/dashboard", dashboardRouter);
+router.use("/email", emailRouter);
+router.use("/groups", groupsRouter);
 
 export default router;

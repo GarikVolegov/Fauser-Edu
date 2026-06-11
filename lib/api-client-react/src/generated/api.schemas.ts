@@ -457,6 +457,66 @@ export interface UpcomingItems {
   events: Event[];
 }
 
+export interface EmailAccountConfig {
+  imapHost: string;
+  imapPort: number;
+  smtpHost: string;
+  smtpPort: number;
+  username: string;
+  useSsl: boolean;
+}
+
+export interface EmailAccountCredentials {
+  imapHost: string;
+  imapPort: number;
+  smtpHost: string;
+  smtpPort: number;
+  username: string;
+  password: string;
+  useSsl: boolean;
+}
+
+export interface EmailHeader {
+  uid: number;
+  subject: string;
+  from: string;
+  date: string;
+  seen: boolean;
+}
+
+export interface EmailMessage {
+  uid: number;
+  subject: string;
+  from: string;
+  to: string;
+  date: string;
+  /** @nullable */
+  text?: string | null;
+  /** @nullable */
+  html?: string | null;
+  seen: boolean;
+}
+
+export interface EmailComposeRequest {
+  to: string;
+  subject: string;
+  text: string;
+}
+
+export interface ClassMessage {
+  id: number;
+  classId: number;
+  senderId: number;
+  senderName: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface CreateClassMessageBody {
+  classId: number;
+  content: string;
+}
+
 export type ListUsersParams = {
 role?: ListUsersRole;
 /**
@@ -560,5 +620,17 @@ from?: string | null;
  * @nullable
  */
 to?: string | null;
+};
+
+export type GetEmailInboxParams = {
+limit?: number;
+};
+
+export type SendEmail200 = {
+  ok: boolean;
+};
+
+export type ListGroupMessagesParams = {
+classId: number;
 };
 

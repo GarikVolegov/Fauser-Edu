@@ -1,0 +1,1 @@
+- [Fauser Platform Stack](fauser-stack.md) — full-stack school platform, key conventions and gotchas for this project

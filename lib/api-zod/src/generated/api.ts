@@ -668,3 +668,116 @@ export const GetUpcomingItemsResponse = zod.object({
 })
 
 
+/**
+ * @summary Get current user email account config (no password)
+ */
+export const GetEmailAccountResponse = zod.object({
+  "imapHost": zod.string(),
+  "imapPort": zod.number(),
+  "smtpHost": zod.string(),
+  "smtpPort": zod.number(),
+  "username": zod.string(),
+  "useSsl": zod.boolean()
+})
+
+
+/**
+ * @summary Save email account credentials
+ */
+export const SaveEmailAccountBody = zod.object({
+  "imapHost": zod.string(),
+  "imapPort": zod.number(),
+  "smtpHost": zod.string(),
+  "smtpPort": zod.number(),
+  "username": zod.string(),
+  "password": zod.string(),
+  "useSsl": zod.boolean()
+})
+
+export const SaveEmailAccountResponse = zod.object({
+  "imapHost": zod.string(),
+  "imapPort": zod.number(),
+  "smtpHost": zod.string(),
+  "smtpPort": zod.number(),
+  "username": zod.string(),
+  "useSsl": zod.boolean()
+})
+
+
+/**
+ * @summary Fetch inbox messages via IMAP
+ */
+export const GetEmailInboxQueryParams = zod.object({
+  "limit": zod.coerce.number().optional()
+})
+
+export const GetEmailInboxResponseItem = zod.object({
+  "uid": zod.number(),
+  "subject": zod.string(),
+  "from": zod.string(),
+  "date": zod.string(),
+  "seen": zod.boolean()
+})
+export const GetEmailInboxResponse = zod.array(GetEmailInboxResponseItem)
+
+
+/**
+ * @summary Fetch single email body via IMAP
+ */
+export const GetEmailMessageParams = zod.object({
+  "uid": zod.coerce.number()
+})
+
+export const GetEmailMessageResponse = zod.object({
+  "uid": zod.number(),
+  "subject": zod.string(),
+  "from": zod.string(),
+  "to": zod.string(),
+  "date": zod.string(),
+  "text": zod.string().nullish(),
+  "html": zod.string().nullish(),
+  "seen": zod.boolean()
+})
+
+
+/**
+ * @summary Send email via SMTP
+ */
+export const SendEmailBody = zod.object({
+  "to": zod.string(),
+  "subject": zod.string(),
+  "text": zod.string()
+})
+
+export const SendEmailResponse = zod.object({
+  "ok": zod.boolean()
+})
+
+
+/**
+ * @summary List class group messages
+ */
+export const ListGroupMessagesQueryParams = zod.object({
+  "classId": zod.coerce.number()
+})
+
+export const ListGroupMessagesResponseItem = zod.object({
+  "id": zod.number(),
+  "classId": zod.number(),
+  "senderId": zod.number(),
+  "senderName": zod.string(),
+  "content": zod.string(),
+  "createdAt": zod.string()
+})
+export const ListGroupMessagesResponse = zod.array(ListGroupMessagesResponseItem)
+
+
+/**
+ * @summary Post a message to the class group
+ */
+export const CreateGroupMessageBody = zod.object({
+  "classId": zod.number(),
+  "content": zod.string()
+})
+
+

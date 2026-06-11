@@ -6,6 +6,7 @@ import {
   GraduationCap, 
   CalendarDays, 
   Bell, 
+  MessageSquare,
   LogOut, 
   Menu
 } from "lucide-react";
@@ -19,6 +20,7 @@ const navItems = [
   { href: "/classroom", label: "Classroom", icon: GraduationCap },
   { href: "/calendario", label: "Calendario", icon: CalendarDays },
   { href: "/comunicazioni", label: "Comunicazioni", icon: Bell },
+  { href: "/messaggi", label: "Messaggi", icon: MessageSquare },
 ];
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -32,18 +34,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const NavLinks = () => (
     <>
       {navItems.map((item) => (
-        <Link key={item.href} href={item.href}>
-          <a
-            onClick={() => setOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-              location === item.href
-                ? "bg-primary/10 text-primary font-medium"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            }`}
-          >
-            <item.icon className="h-5 w-5" />
-            {item.label}
-          </a>
+        <Link
+          key={item.href}
+          href={item.href}
+          onClick={() => setOpen(false)}
+          className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
+            location === item.href
+              ? "bg-primary/10 text-primary font-medium"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          }`}
+        >
+          <item.icon className="h-5 w-5" />
+          {item.label}
         </Link>
       ))}
     </>

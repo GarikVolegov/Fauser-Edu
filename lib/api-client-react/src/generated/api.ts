@@ -31,12 +31,20 @@ import type {
   AttendanceUpdate,
   Class,
   ClassInput,
+  ClassMessage,
   ClassUpdate,
+  CreateClassMessageBody,
   DashboardSummary,
+  EmailAccountConfig,
+  EmailAccountCredentials,
+  EmailComposeRequest,
+  EmailHeader,
+  EmailMessage,
   Event,
   EventInput,
   EventUpdate,
   GetAttendanceSummaryParams,
+  GetEmailInboxParams,
   GetGradesSummaryParams,
   Grade,
   GradeInput,
@@ -47,11 +55,13 @@ import type {
   ListAttendanceParams,
   ListEventsParams,
   ListGradesParams,
+  ListGroupMessagesParams,
   ListMaterialsParams,
   ListSubjectsParams,
   ListUsersParams,
   Material,
   MaterialInput,
+  SendEmail200,
   Subject,
   SubjectInput,
   UpcomingItems,
@@ -2868,4 +2878,539 @@ export function useGetUpcomingItems<TData = Awaited<ReturnType<typeof getUpcomin
 
 
 
+
+export const getGetEmailAccountUrl = () => {
+
+
+
+
+  return `/api/email/account`
+}
+
+/**
+ * @summary Get current user email account config (no password)
+ */
+export const getEmailAccount = async ( options?: RequestInit): Promise<EmailAccountConfig> => {
+
+  return customFetch<EmailAccountConfig>(getGetEmailAccountUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmailAccountQueryKey = () => {
+    return [
+    `/api/email/account`
+    ] as const;
+    }
+
+
+export const getGetEmailAccountQueryOptions = <TData = Awaited<ReturnType<typeof getEmailAccount>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEmailAccount>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmailAccountQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmailAccount>>> = ({ signal }) => getEmailAccount({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmailAccount>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetEmailAccountQueryResult = NonNullable<Awaited<ReturnType<typeof getEmailAccount>>>
+export type GetEmailAccountQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get current user email account config (no password)
+ */
+
+export function useGetEmailAccount<TData = Awaited<ReturnType<typeof getEmailAccount>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEmailAccount>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetEmailAccountQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSaveEmailAccountUrl = () => {
+
+
+
+
+  return `/api/email/account`
+}
+
+/**
+ * @summary Save email account credentials
+ */
+export const saveEmailAccount = async (emailAccountCredentials: EmailAccountCredentials, options?: RequestInit): Promise<EmailAccountConfig> => {
+
+  return customFetch<EmailAccountConfig>(getSaveEmailAccountUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      emailAccountCredentials,)
+  }
+);}
+
+
+
+
+export const getSaveEmailAccountMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveEmailAccount>>, TError,{data: BodyType<EmailAccountCredentials>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveEmailAccount>>, TError,{data: BodyType<EmailAccountCredentials>}, TContext> => {
+
+const mutationKey = ['saveEmailAccount'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveEmailAccount>>, {data: BodyType<EmailAccountCredentials>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  saveEmailAccount(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveEmailAccountMutationResult = NonNullable<Awaited<ReturnType<typeof saveEmailAccount>>>
+    export type SaveEmailAccountMutationBody = BodyType<EmailAccountCredentials>
+    export type SaveEmailAccountMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Save email account credentials
+ */
+export const useSaveEmailAccount = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveEmailAccount>>, TError,{data: BodyType<EmailAccountCredentials>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof saveEmailAccount>>,
+        TError,
+        {data: BodyType<EmailAccountCredentials>},
+        TContext
+      > => {
+      return useMutation(getSaveEmailAccountMutationOptions(options));
+    }
+
+export const getGetEmailInboxUrl = (params?: GetEmailInboxParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/email/inbox?${stringifiedParams}` : `/api/email/inbox`
+}
+
+/**
+ * @summary Fetch inbox messages via IMAP
+ */
+export const getEmailInbox = async (params?: GetEmailInboxParams, options?: RequestInit): Promise<EmailHeader[]> => {
+
+  return customFetch<EmailHeader[]>(getGetEmailInboxUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmailInboxQueryKey = (params?: GetEmailInboxParams,) => {
+    return [
+    `/api/email/inbox`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetEmailInboxQueryOptions = <TData = Awaited<ReturnType<typeof getEmailInbox>>, TError = ErrorType<void>>(params?: GetEmailInboxParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEmailInbox>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmailInboxQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmailInbox>>> = ({ signal }) => getEmailInbox(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmailInbox>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetEmailInboxQueryResult = NonNullable<Awaited<ReturnType<typeof getEmailInbox>>>
+export type GetEmailInboxQueryError = ErrorType<void>
+
+
+/**
+ * @summary Fetch inbox messages via IMAP
+ */
+
+export function useGetEmailInbox<TData = Awaited<ReturnType<typeof getEmailInbox>>, TError = ErrorType<void>>(
+ params?: GetEmailInboxParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEmailInbox>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetEmailInboxQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetEmailMessageUrl = (uid: number,) => {
+
+
+
+
+  return `/api/email/message/${uid}`
+}
+
+/**
+ * @summary Fetch single email body via IMAP
+ */
+export const getEmailMessage = async (uid: number, options?: RequestInit): Promise<EmailMessage> => {
+
+  return customFetch<EmailMessage>(getGetEmailMessageUrl(uid),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEmailMessageQueryKey = (uid: number,) => {
+    return [
+    `/api/email/message/${uid}`
+    ] as const;
+    }
+
+
+export const getGetEmailMessageQueryOptions = <TData = Awaited<ReturnType<typeof getEmailMessage>>, TError = ErrorType<unknown>>(uid: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEmailMessage>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEmailMessageQueryKey(uid);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEmailMessage>>> = ({ signal }) => getEmailMessage(uid, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(uid), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEmailMessage>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetEmailMessageQueryResult = NonNullable<Awaited<ReturnType<typeof getEmailMessage>>>
+export type GetEmailMessageQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Fetch single email body via IMAP
+ */
+
+export function useGetEmailMessage<TData = Awaited<ReturnType<typeof getEmailMessage>>, TError = ErrorType<unknown>>(
+ uid: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEmailMessage>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetEmailMessageQueryOptions(uid,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSendEmailUrl = () => {
+
+
+
+
+  return `/api/email/send`
+}
+
+/**
+ * @summary Send email via SMTP
+ */
+export const sendEmail = async (emailComposeRequest: EmailComposeRequest, options?: RequestInit): Promise<SendEmail200> => {
+
+  return customFetch<SendEmail200>(getSendEmailUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      emailComposeRequest,)
+  }
+);}
+
+
+
+
+export const getSendEmailMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendEmail>>, TError,{data: BodyType<EmailComposeRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof sendEmail>>, TError,{data: BodyType<EmailComposeRequest>}, TContext> => {
+
+const mutationKey = ['sendEmail'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof sendEmail>>, {data: BodyType<EmailComposeRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  sendEmail(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SendEmailMutationResult = NonNullable<Awaited<ReturnType<typeof sendEmail>>>
+    export type SendEmailMutationBody = BodyType<EmailComposeRequest>
+    export type SendEmailMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Send email via SMTP
+ */
+export const useSendEmail = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof sendEmail>>, TError,{data: BodyType<EmailComposeRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof sendEmail>>,
+        TError,
+        {data: BodyType<EmailComposeRequest>},
+        TContext
+      > => {
+      return useMutation(getSendEmailMutationOptions(options));
+    }
+
+export const getListGroupMessagesUrl = (params: ListGroupMessagesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/groups/messages?${stringifiedParams}` : `/api/groups/messages`
+}
+
+/**
+ * @summary List class group messages
+ */
+export const listGroupMessages = async (params: ListGroupMessagesParams, options?: RequestInit): Promise<ClassMessage[]> => {
+
+  return customFetch<ClassMessage[]>(getListGroupMessagesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListGroupMessagesQueryKey = (params?: ListGroupMessagesParams,) => {
+    return [
+    `/api/groups/messages`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListGroupMessagesQueryOptions = <TData = Awaited<ReturnType<typeof listGroupMessages>>, TError = ErrorType<unknown>>(params: ListGroupMessagesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listGroupMessages>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListGroupMessagesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listGroupMessages>>> = ({ signal }) => listGroupMessages(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listGroupMessages>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListGroupMessagesQueryResult = NonNullable<Awaited<ReturnType<typeof listGroupMessages>>>
+export type ListGroupMessagesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List class group messages
+ */
+
+export function useListGroupMessages<TData = Awaited<ReturnType<typeof listGroupMessages>>, TError = ErrorType<unknown>>(
+ params: ListGroupMessagesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listGroupMessages>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListGroupMessagesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateGroupMessageUrl = () => {
+
+
+
+
+  return `/api/groups/messages`
+}
+
+/**
+ * @summary Post a message to the class group
+ */
+export const createGroupMessage = async (createClassMessageBody: CreateClassMessageBody, options?: RequestInit): Promise<ClassMessage> => {
+
+  return customFetch<ClassMessage>(getCreateGroupMessageUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createClassMessageBody,)
+  }
+);}
+
+
+
+
+export const getCreateGroupMessageMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createGroupMessage>>, TError,{data: BodyType<CreateClassMessageBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createGroupMessage>>, TError,{data: BodyType<CreateClassMessageBody>}, TContext> => {
+
+const mutationKey = ['createGroupMessage'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createGroupMessage>>, {data: BodyType<CreateClassMessageBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createGroupMessage(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateGroupMessageMutationResult = NonNullable<Awaited<ReturnType<typeof createGroupMessage>>>
+    export type CreateGroupMessageMutationBody = BodyType<CreateClassMessageBody>
+    export type CreateGroupMessageMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Post a message to the class group
+ */
+export const useCreateGroupMessage = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createGroupMessage>>, TError,{data: BodyType<CreateClassMessageBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createGroupMessage>>,
+        TError,
+        {data: BodyType<CreateClassMessageBody>},
+        TContext
+      > => {
+      return useMutation(getCreateGroupMessageMutationOptions(options));
+    }
 

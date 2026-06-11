@@ -16,6 +16,7 @@ import Registro from "@/pages/Registro";
 import Classroom from "@/pages/Classroom";
 import Calendario from "@/pages/Calendario";
 import Comunicazioni from "@/pages/Comunicazioni";
+import Messaggi from "@/pages/Messaggi";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -223,6 +224,10 @@ function ClerkProviderWithRoutes() {
           
           <Route path="/comunicazioni">
             <ProtectedRoute component={Comunicazioni} />
+          </Route>
+
+          <Route path="/messaggi">
+            <ProtectedRoute component={Messaggi} />
           </Route>
           
           <Route component={NotFound} />
