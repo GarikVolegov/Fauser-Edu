@@ -730,6 +730,716 @@ paths:
               schema:
                 $ref: "#/components/schemas/UpcomingItems"
 
+  /quizzes:
+    get:
+      operationId: listQuizzes
+      tags: [quizzes]
+      summary: List quizzes
+      parameters:
+        - in: query
+          name: classId
+          schema:
+            type: integer
+        - in: query
+          name: subjectId
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Quizzes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuizSummary"
+    post:
+      operationId: createQuiz
+      tags: [quizzes]
+      summary: Create a quiz
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizSummary"
+
+  /quizzes/{id}:
+    get:
+      operationId: getQuiz
+      tags: [quizzes]
+      summary: Get quiz detail with questions
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Quiz detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizDetail"
+    patch:
+      operationId: updateQuizStatus
+      tags: [quizzes]
+      summary: Update quiz status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizStatusInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizSummary"
+
+  /quizzes/{id}/questions:
+    post:
+      operationId: addQuizQuestion
+      tags: [quizzes]
+      summary: Add a question to a quiz
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizQuestionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizQuestionDetail"
+
+  /quizzes/{id}/submit:
+    post:
+      operationId: submitQuiz
+      tags: [quizzes]
+      summary: Submit quiz answers
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuizSubmitInput"
+      responses:
+        "200":
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuizResult"
+
+  /quizzes/{id}/responses:
+    get:
+      operationId: listQuizResponses
+      tags: [quizzes]
+      summary: List responses for a quiz
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Responses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/QuizResult"
+
+  /diary:
+    get:
+      operationId: listDiaryEntries
+      tags: [diary]
+      summary: List diary entries for current user
+      responses:
+        "200":
+          description: Entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DiaryEntry"
+    post:
+      operationId: createDiaryEntry
+      tags: [diary]
+      summary: Create a diary entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiaryEntryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiaryEntry"
+
+  /diary/{id}:
+    patch:
+      operationId: updateDiaryEntry
+      tags: [diary]
+      summary: Update a diary entry
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiaryEntryInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiaryEntry"
+    delete:
+      operationId: deleteDiaryEntry
+      tags: [diary]
+      summary: Delete a diary entry
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /competencies:
+    get:
+      operationId: listCompetencies
+      tags: [competencies]
+      summary: List competencies
+      parameters:
+        - in: query
+          name: subjectId
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Competencies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CompetencyItem"
+    post:
+      operationId: createCompetency
+      tags: [competencies]
+      summary: Create a competency definition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompetencyInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompetencyItem"
+
+  /student-competencies:
+    get:
+      operationId: listStudentCompetencies
+      tags: [competencies]
+      summary: List student competency assessments
+      parameters:
+        - in: query
+          name: studentId
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Student competencies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StudentCompetencyItem"
+    post:
+      operationId: createStudentCompetency
+      tags: [competencies]
+      summary: Assess a student competency
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StudentCompetencyInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StudentCompetencyItem"
+
+  /forum/threads:
+    get:
+      operationId: listForumThreads
+      tags: [forum]
+      summary: List forum threads
+      parameters:
+        - in: query
+          name: subjectId
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Threads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ForumThread"
+    post:
+      operationId: createForumThread
+      tags: [forum]
+      summary: Create a forum thread
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForumThreadInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForumThread"
+
+  /forum/threads/{id}/posts:
+    get:
+      operationId: listForumPosts
+      tags: [forum]
+      summary: List posts in a thread
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ForumPost"
+    post:
+      operationId: createForumPost
+      tags: [forum]
+      summary: Reply to a thread
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ForumPostInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForumPost"
+
+  /polls:
+    get:
+      operationId: listPolls
+      tags: [polls]
+      summary: List polls with vote counts
+      responses:
+        "200":
+          description: Polls
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PollDetail"
+    post:
+      operationId: createPoll
+      tags: [polls]
+      summary: Create a poll
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PollInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollDetail"
+
+  /polls/{id}/vote:
+    post:
+      operationId: votePoll
+      tags: [polls]
+      summary: Vote on a poll
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PollVoteInput"
+      responses:
+        "200":
+          description: Updated poll
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollDetail"
+
+  /polls/{id}:
+    patch:
+      operationId: updatePollStatus
+      tags: [polls]
+      summary: Close or update poll
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PollStatusInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PollDetail"
+
+  /field-trips:
+    get:
+      operationId: listFieldTrips
+      tags: [fieldTrips]
+      summary: List field trips
+      responses:
+        "200":
+          description: Field trips
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FieldTrip"
+    post:
+      operationId: createFieldTrip
+      tags: [fieldTrips]
+      summary: Create a field trip
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FieldTripInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldTrip"
+
+  /field-trips/{id}/status:
+    patch:
+      operationId: updateFieldTripStatus
+      tags: [fieldTrips]
+      summary: Update field trip status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FieldTripStatusInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldTrip"
+
+  /field-trips/{id}/join:
+    post:
+      operationId: joinFieldTrip
+      tags: [fieldTrips]
+      summary: Student joins a field trip
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: Joined
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldTripParticipant"
+
+  /field-trips/{id}/participants/{studentId}:
+    patch:
+      operationId: updateParticipantStatus
+      tags: [fieldTrips]
+      summary: Approve or decline a participant
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: path
+          name: studentId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ParticipantStatusInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FieldTripParticipant"
+
+  /field-trips/{id}/participants:
+    get:
+      operationId: listFieldTripParticipants
+      tags: [fieldTrips]
+      summary: List participants of a field trip
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Participants
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/FieldTripParticipant"
+
+  /rooms:
+    get:
+      operationId: listRooms
+      tags: [rooms]
+      summary: List rooms
+      responses:
+        "200":
+          description: Rooms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Room"
+    post:
+      operationId: createRoom
+      tags: [rooms]
+      summary: Create a room
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Room"
+
+  /room-bookings:
+    get:
+      operationId: listRoomBookings
+      tags: [rooms]
+      summary: List room bookings
+      parameters:
+        - in: query
+          name: roomId
+          schema:
+            type: integer
+        - in: query
+          name: date
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Bookings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RoomBooking"
+    post:
+      operationId: createRoomBooking
+      tags: [rooms]
+      summary: Book a room
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RoomBookingInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomBooking"
+
+  /room-bookings/{id}:
+    delete:
+      operationId: deleteRoomBooking
+      tags: [rooms]
+      summary: Delete a room booking
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /analytics/summary:
+    get:
+      operationId: getAnalyticsSummary
+      tags: [analytics]
+      summary: Get aggregated analytics data
+      responses:
+        "200":
+          description: Analytics summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsSummary"
+
+  /certificates/{type}:
+    get:
+      operationId: downloadCertificate
+      tags: [certificates]
+      summary: Download a certificate as PDF
+      parameters:
+        - in: path
+          name: type
+          required: true
+          schema:
+            type: string
+            enum: [iscrizione, frequenza, pagella]
+      responses:
+        "200":
+          description: PDF file
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+
   /schedule:
     get:
       operationId: listSchedule
@@ -1822,6 +2532,764 @@ components:
         - upcomingEvents
         - unreadAnnouncements
         - recentGrades
+
+    QuizSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        subjectId:
+          type: integer
+        subjectName:
+          type: string
+        classId:
+          type: integer
+        className:
+          type: string
+        teacherId:
+          type: integer
+        teacherName:
+          type: string
+        duration:
+          type: integer
+        status:
+          type: string
+        questionsCount:
+          type: integer
+        createdAt:
+          type: string
+      required:
+        - id
+        - title
+        - subjectId
+        - subjectName
+        - classId
+        - className
+        - teacherId
+        - teacherName
+        - duration
+        - status
+        - questionsCount
+        - createdAt
+
+    QuizInput:
+      type: object
+      properties:
+        title:
+          type: string
+        subjectId:
+          type: integer
+        classId:
+          type: integer
+        duration:
+          type: integer
+      required:
+        - title
+        - subjectId
+        - classId
+
+    QuizStatusInput:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [draft, active, closed]
+      required:
+        - status
+
+    QuizQuestionDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        quizId:
+          type: integer
+        text:
+          type: string
+        type:
+          type: string
+        order:
+          type: integer
+        points:
+          type: integer
+        choices:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              text:
+                type: string
+              isCorrect:
+                type: boolean
+            required:
+              - id
+              - text
+              - isCorrect
+      required:
+        - id
+        - quizId
+        - text
+        - type
+        - order
+        - points
+        - choices
+
+    QuizQuestionInput:
+      type: object
+      properties:
+        text:
+          type: string
+        type:
+          type: string
+        points:
+          type: integer
+        choices:
+          type: array
+          items:
+            type: object
+            properties:
+              text:
+                type: string
+              isCorrect:
+                type: boolean
+            required:
+              - text
+              - isCorrect
+      required:
+        - text
+
+    QuizDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        subjectName:
+          type: string
+        className:
+          type: string
+        duration:
+          type: integer
+        status:
+          type: string
+        questions:
+          type: array
+          items:
+            $ref: "#/components/schemas/QuizQuestionDetail"
+      required:
+        - id
+        - title
+        - subjectName
+        - className
+        - duration
+        - status
+        - questions
+
+    QuizSubmitInput:
+      type: object
+      properties:
+        answers:
+          type: object
+          additionalProperties:
+            type: string
+      required:
+        - answers
+
+    QuizResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        quizId:
+          type: integer
+        quizTitle:
+          type: string
+        studentId:
+          type: integer
+        studentName:
+          type: string
+        score:
+          type: integer
+          nullable: true
+        totalPoints:
+          type: integer
+        percentage:
+          type: number
+          nullable: true
+        submittedAt:
+          type: string
+      required:
+        - id
+        - quizId
+        - quizTitle
+        - studentId
+        - studentName
+        - submittedAt
+
+    DiaryEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        subjectId:
+          type: integer
+          nullable: true
+        subjectName:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - userId
+        - title
+        - content
+        - createdAt
+        - updatedAt
+
+    DiaryEntryInput:
+      type: object
+      properties:
+        title:
+          type: string
+        content:
+          type: string
+        subjectId:
+          type: integer
+      required:
+        - title
+        - content
+
+    CompetencyItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        subjectId:
+          type: integer
+        subjectName:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - subjectId
+        - subjectName
+        - name
+        - createdAt
+
+    CompetencyInput:
+      type: object
+      properties:
+        subjectId:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+      required:
+        - subjectId
+        - name
+
+    StudentCompetencyItem:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        studentName:
+          type: string
+        competencyId:
+          type: integer
+        competencyName:
+          type: string
+        subjectName:
+          type: string
+        level:
+          type: integer
+        teacherId:
+          type: integer
+        teacherName:
+          type: string
+        date:
+          type: string
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - studentId
+        - studentName
+        - competencyId
+        - competencyName
+        - subjectName
+        - level
+        - teacherId
+        - teacherName
+        - date
+        - createdAt
+
+    StudentCompetencyInput:
+      type: object
+      properties:
+        studentId:
+          type: integer
+        competencyId:
+          type: integer
+        level:
+          type: integer
+        date:
+          type: string
+        notes:
+          type: string
+      required:
+        - studentId
+        - competencyId
+        - level
+        - date
+
+    ForumThread:
+      type: object
+      properties:
+        id:
+          type: integer
+        subjectId:
+          type: integer
+        subjectName:
+          type: string
+        authorId:
+          type: integer
+        authorName:
+          type: string
+        classId:
+          type: integer
+          nullable: true
+        title:
+          type: string
+        replyCount:
+          type: integer
+        createdAt:
+          type: string
+      required:
+        - id
+        - subjectId
+        - subjectName
+        - authorId
+        - authorName
+        - title
+        - replyCount
+        - createdAt
+
+    ForumThreadInput:
+      type: object
+      properties:
+        subjectId:
+          type: integer
+        title:
+          type: string
+        classId:
+          type: integer
+      required:
+        - subjectId
+        - title
+
+    ForumPost:
+      type: object
+      properties:
+        id:
+          type: integer
+        threadId:
+          type: integer
+        authorId:
+          type: integer
+        authorName:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - threadId
+        - authorId
+        - authorName
+        - content
+        - createdAt
+
+    ForumPostInput:
+      type: object
+      properties:
+        content:
+          type: string
+      required:
+        - content
+
+    PollDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        question:
+          type: string
+        authorId:
+          type: integer
+        authorName:
+          type: string
+        classId:
+          type: integer
+          nullable: true
+        status:
+          type: string
+        expiresAt:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+        options:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              text:
+                type: string
+              voteCount:
+                type: integer
+            required:
+              - id
+              - text
+              - voteCount
+        totalVotes:
+          type: integer
+        myVoteOptionId:
+          type: integer
+          nullable: true
+      required:
+        - id
+        - question
+        - authorId
+        - authorName
+        - status
+        - createdAt
+        - options
+        - totalVotes
+
+    PollInput:
+      type: object
+      properties:
+        question:
+          type: string
+        options:
+          type: array
+          items:
+            type: string
+        classId:
+          type: integer
+        expiresAt:
+          type: string
+      required:
+        - question
+        - options
+
+    PollVoteInput:
+      type: object
+      properties:
+        optionId:
+          type: integer
+      required:
+        - optionId
+
+    PollStatusInput:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [active, closed]
+      required:
+        - status
+
+    FieldTrip:
+      type: object
+      properties:
+        id:
+          type: integer
+        teacherId:
+          type: integer
+        teacherName:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        date:
+          type: string
+        destination:
+          type: string
+        budget:
+          type: number
+          nullable: true
+        status:
+          type: string
+        classId:
+          type: integer
+          nullable: true
+        participantCount:
+          type: integer
+        myStatus:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - teacherId
+        - teacherName
+        - title
+        - date
+        - destination
+        - status
+        - participantCount
+        - createdAt
+
+    FieldTripInput:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+        destination:
+          type: string
+        budget:
+          type: number
+        classId:
+          type: integer
+      required:
+        - title
+        - date
+        - destination
+
+    FieldTripStatusInput:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [published, cancelled, draft]
+      required:
+        - status
+
+    FieldTripParticipant:
+      type: object
+      properties:
+        id:
+          type: integer
+        fieldTripId:
+          type: integer
+        studentId:
+          type: integer
+        studentName:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - fieldTripId
+        - studentId
+        - studentName
+        - status
+        - createdAt
+
+    ParticipantStatusInput:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [approved, declined]
+      required:
+        - status
+
+    Room:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        capacity:
+          type: integer
+        type:
+          type: string
+        equipment:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - capacity
+        - type
+        - createdAt
+
+    RoomInput:
+      type: object
+      properties:
+        name:
+          type: string
+        capacity:
+          type: integer
+        type:
+          type: string
+        equipment:
+          type: string
+      required:
+        - name
+        - capacity
+        - type
+
+    RoomBooking:
+      type: object
+      properties:
+        id:
+          type: integer
+        roomId:
+          type: integer
+        roomName:
+          type: string
+        teacherId:
+          type: integer
+        teacherName:
+          type: string
+        date:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        purpose:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - roomId
+        - roomName
+        - teacherId
+        - teacherName
+        - date
+        - startTime
+        - endTime
+        - purpose
+        - createdAt
+
+    RoomBookingInput:
+      type: object
+      properties:
+        roomId:
+          type: integer
+        date:
+          type: string
+        startTime:
+          type: string
+        endTime:
+          type: string
+        purpose:
+          type: string
+      required:
+        - roomId
+        - date
+        - startTime
+        - endTime
+        - purpose
+
+    AnalyticsSummary:
+      type: object
+      properties:
+        totalStudents:
+          type: integer
+        totalTeachers:
+          type: integer
+        totalClasses:
+          type: integer
+        avgGrade:
+          type: number
+        attendanceRate:
+          type: number
+        activeQuizzes:
+          type: integer
+        gradesBySubject:
+          type: array
+          items:
+            type: object
+            properties:
+              subjectName:
+                type: string
+              average:
+                type: number
+            required:
+              - subjectName
+              - average
+        attendanceByMonth:
+          type: array
+          items:
+            type: object
+            properties:
+              month:
+                type: string
+              rate:
+                type: number
+            required:
+              - month
+              - rate
+        gradeDistribution:
+          type: array
+          items:
+            type: object
+            properties:
+              range:
+                type: string
+              count:
+                type: integer
+            required:
+              - range
+              - count
+      required:
+        - totalStudents
+        - totalTeachers
+        - totalClasses
+        - avgGrade
+        - attendanceRate
+        - activeQuizzes
+        - gradesBySubject
+        - attendanceByMonth
+        - gradeDistribution
 
     ScheduleEntry:
       type: object

@@ -18,6 +18,15 @@ import appointmentsRouter from "./appointments";
 import notificationsRouter from "./notifications";
 import behaviorNotesRouter from "./behaviorNotes";
 import tutoringRouter from "./tutoring";
+import quizzesRouter from "./quizzes";
+import diaryRouter from "./diary";
+import competenciesRouter from "./competencies";
+import forumRouter from "./forum";
+import pollsRouter from "./polls";
+import fieldTripsRouter from "./fieldTrips";
+import roomsRouter from "./rooms";
+import analyticsRouter from "./analytics";
+import certificatesRouter from "./certificates";
 
 const router: IRouter = Router();
 
@@ -40,5 +49,16 @@ router.use("/appointments", appointmentsRouter);
 router.use("/notifications", notificationsRouter);
 router.use("/behavior-notes", behaviorNotesRouter);
 router.use("/tutoring", tutoringRouter);
+router.use("/quizzes", quizzesRouter);
+router.use("/diary", diaryRouter);
+router.use("/competencies", competenciesRouter);
+router.use("/student-competencies", competenciesRouter);
+router.use("/forum", forumRouter);
+router.use("/polls", pollsRouter);
+router.use("/field-trips", fieldTripsRouter);
+router.use("/rooms", roomsRouter);
+router.use("/room-bookings", roomsRouter);
+router.use("/analytics", analyticsRouter);
+router.use("/certificates", certificatesRouter);
 
 export default router;

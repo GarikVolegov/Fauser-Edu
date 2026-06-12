@@ -25,6 +25,16 @@ import Libreria from "@/pages/Libreria";
 import Tutoraggio from "@/pages/Tutoraggio";
 import Admin from "@/pages/Admin";
 
+import Quiz from "@/pages/Quiz";
+import Diario from "@/pages/Diario";
+import Portfolio from "@/pages/Portfolio";
+import Forum from "@/pages/Forum";
+import Sondaggi from "@/pages/Sondaggi";
+import UsciteDidattiche from "@/pages/UsciteDidattiche";
+import Aule from "@/pages/Aule";
+import Certificati from "@/pages/Certificati";
+import Analytics from "@/pages/Analytics";
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -263,6 +273,42 @@ function ClerkProviderWithRoutes() {
 
           <Route path="/admin">
             <ProtectedRoute component={Admin} />
+          </Route>
+
+          <Route path="/quiz">
+            <ProtectedRoute component={Quiz} />
+          </Route>
+          
+          <Route path="/diario">
+            <ProtectedRoute component={Diario} />
+          </Route>
+          
+          <Route path="/portfolio">
+            <ProtectedRoute component={Portfolio} />
+          </Route>
+          
+          <Route path="/forum">
+            <ProtectedRoute component={Forum} />
+          </Route>
+          
+          <Route path="/sondaggi">
+            <ProtectedRoute component={Sondaggi} />
+          </Route>
+          
+          <Route path="/uscite">
+            <ProtectedRoute component={UsciteDidattiche} />
+          </Route>
+          
+          <Route path="/aule">
+            <ProtectedRoute component={Aule} />
+          </Route>
+          
+          <Route path="/certificati">
+            <ProtectedRoute component={Certificati} />
+          </Route>
+          
+          <Route path="/analytics">
+            <ProtectedRoute component={Analytics} />
           </Route>
           
           <Route component={NotFound} />

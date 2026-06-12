@@ -452,6 +452,349 @@ export interface DashboardSummary {
   recentGrades: Grade[];
 }
 
+export interface QuizSummary {
+  id: number;
+  title: string;
+  subjectId: number;
+  subjectName: string;
+  classId: number;
+  className: string;
+  teacherId: number;
+  teacherName: string;
+  duration: number;
+  status: string;
+  questionsCount: number;
+  createdAt: string;
+}
+
+export interface QuizInput {
+  title: string;
+  subjectId: number;
+  classId: number;
+  duration?: number;
+}
+
+export type QuizStatusInputStatus = typeof QuizStatusInputStatus[keyof typeof QuizStatusInputStatus];
+
+
+export const QuizStatusInputStatus = {
+  draft: 'draft',
+  active: 'active',
+  closed: 'closed',
+} as const;
+
+export interface QuizStatusInput {
+  status: QuizStatusInputStatus;
+}
+
+export type QuizQuestionDetailChoicesItem = {
+  id: number;
+  text: string;
+  isCorrect: boolean;
+};
+
+export interface QuizQuestionDetail {
+  id: number;
+  quizId: number;
+  text: string;
+  type: string;
+  order: number;
+  points: number;
+  choices: QuizQuestionDetailChoicesItem[];
+}
+
+export type QuizQuestionInputChoicesItem = {
+  text: string;
+  isCorrect: boolean;
+};
+
+export interface QuizQuestionInput {
+  text: string;
+  type?: string;
+  points?: number;
+  choices?: QuizQuestionInputChoicesItem[];
+}
+
+export interface QuizDetail {
+  id: number;
+  title: string;
+  subjectName: string;
+  className: string;
+  duration: number;
+  status: string;
+  questions: QuizQuestionDetail[];
+}
+
+export type QuizSubmitInputAnswers = {[key: string]: string};
+
+export interface QuizSubmitInput {
+  answers: QuizSubmitInputAnswers;
+}
+
+export interface QuizResult {
+  id: number;
+  quizId: number;
+  quizTitle: string;
+  studentId: number;
+  studentName: string;
+  score?: number | null;
+  totalPoints?: number;
+  percentage?: number | null;
+  submittedAt: string;
+}
+
+export interface DiaryEntry {
+  id: number;
+  userId: number;
+  title: string;
+  content: string;
+  subjectId?: number | null;
+  subjectName?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DiaryEntryInput {
+  title: string;
+  content: string;
+  subjectId?: number;
+}
+
+export interface CompetencyItem {
+  id: number;
+  subjectId: number;
+  subjectName: string;
+  name: string;
+  description?: string | null;
+  createdAt: string;
+}
+
+export interface CompetencyInput {
+  subjectId: number;
+  name: string;
+  description?: string;
+}
+
+export interface StudentCompetencyItem {
+  id: number;
+  studentId: number;
+  studentName: string;
+  competencyId: number;
+  competencyName: string;
+  subjectName: string;
+  level: number;
+  teacherId: number;
+  teacherName: string;
+  date: string;
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface StudentCompetencyInput {
+  studentId: number;
+  competencyId: number;
+  level: number;
+  date: string;
+  notes?: string;
+}
+
+export interface ForumThread {
+  id: number;
+  subjectId: number;
+  subjectName: string;
+  authorId: number;
+  authorName: string;
+  classId?: number | null;
+  title: string;
+  replyCount: number;
+  createdAt: string;
+}
+
+export interface ForumThreadInput {
+  subjectId: number;
+  title: string;
+  classId?: number;
+}
+
+export interface ForumPost {
+  id: number;
+  threadId: number;
+  authorId: number;
+  authorName: string;
+  content: string;
+  createdAt: string;
+}
+
+export interface ForumPostInput {
+  content: string;
+}
+
+export type PollDetailOptionsItem = {
+  id: number;
+  text: string;
+  voteCount: number;
+};
+
+export interface PollDetail {
+  id: number;
+  question: string;
+  authorId: number;
+  authorName: string;
+  classId?: number | null;
+  status: string;
+  expiresAt?: string | null;
+  createdAt: string;
+  options: PollDetailOptionsItem[];
+  totalVotes: number;
+  myVoteOptionId?: number | null;
+}
+
+export interface PollInput {
+  question: string;
+  options: string[];
+  classId?: number;
+  expiresAt?: string;
+}
+
+export interface PollVoteInput {
+  optionId: number;
+}
+
+export type PollStatusInputStatus = typeof PollStatusInputStatus[keyof typeof PollStatusInputStatus];
+
+
+export const PollStatusInputStatus = {
+  active: 'active',
+  closed: 'closed',
+} as const;
+
+export interface PollStatusInput {
+  status: PollStatusInputStatus;
+}
+
+export interface FieldTrip {
+  id: number;
+  teacherId: number;
+  teacherName: string;
+  title: string;
+  description?: string | null;
+  date: string;
+  destination: string;
+  budget?: number | null;
+  status: string;
+  classId?: number | null;
+  participantCount: number;
+  myStatus?: string | null;
+  createdAt: string;
+}
+
+export interface FieldTripInput {
+  title: string;
+  description?: string;
+  date: string;
+  destination: string;
+  budget?: number;
+  classId?: number;
+}
+
+export type FieldTripStatusInputStatus = typeof FieldTripStatusInputStatus[keyof typeof FieldTripStatusInputStatus];
+
+
+export const FieldTripStatusInputStatus = {
+  published: 'published',
+  cancelled: 'cancelled',
+  draft: 'draft',
+} as const;
+
+export interface FieldTripStatusInput {
+  status: FieldTripStatusInputStatus;
+}
+
+export interface FieldTripParticipant {
+  id: number;
+  fieldTripId: number;
+  studentId: number;
+  studentName: string;
+  status: string;
+  createdAt: string;
+}
+
+export type ParticipantStatusInputStatus = typeof ParticipantStatusInputStatus[keyof typeof ParticipantStatusInputStatus];
+
+
+export const ParticipantStatusInputStatus = {
+  approved: 'approved',
+  declined: 'declined',
+} as const;
+
+export interface ParticipantStatusInput {
+  status: ParticipantStatusInputStatus;
+}
+
+export interface Room {
+  id: number;
+  name: string;
+  capacity: number;
+  type: string;
+  equipment?: string | null;
+  createdAt: string;
+}
+
+export interface RoomInput {
+  name: string;
+  capacity: number;
+  type: string;
+  equipment?: string;
+}
+
+export interface RoomBooking {
+  id: number;
+  roomId: number;
+  roomName: string;
+  teacherId: number;
+  teacherName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  purpose: string;
+  createdAt: string;
+}
+
+export interface RoomBookingInput {
+  roomId: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  purpose: string;
+}
+
+export type AnalyticsSummaryGradesBySubjectItem = {
+  subjectName: string;
+  average: number;
+};
+
+export type AnalyticsSummaryAttendanceByMonthItem = {
+  month: string;
+  rate: number;
+};
+
+export type AnalyticsSummaryGradeDistributionItem = {
+  range: string;
+  count: number;
+};
+
+export interface AnalyticsSummary {
+  totalStudents: number;
+  totalTeachers: number;
+  totalClasses: number;
+  avgGrade: number;
+  attendanceRate: number;
+  activeQuizzes: number;
+  gradesBySubject: AnalyticsSummaryGradesBySubjectItem[];
+  attendanceByMonth: AnalyticsSummaryAttendanceByMonthItem[];
+  gradeDistribution: AnalyticsSummaryGradeDistributionItem[];
+}
+
 export interface ScheduleEntry {
   id: number;
   classId: number;
@@ -770,6 +1113,28 @@ from?: string | null;
  * @nullable
  */
 to?: string | null;
+};
+
+export type ListQuizzesParams = {
+classId?: number;
+subjectId?: number;
+};
+
+export type ListCompetenciesParams = {
+subjectId?: number;
+};
+
+export type ListStudentCompetenciesParams = {
+studentId?: number;
+};
+
+export type ListForumThreadsParams = {
+subjectId?: number;
+};
+
+export type ListRoomBookingsParams = {
+roomId?: number;
+date?: string;
 };
 
 export type ListScheduleParams = {

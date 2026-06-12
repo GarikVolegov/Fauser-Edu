@@ -669,6 +669,651 @@ export const GetUpcomingItemsResponse = zod.object({
 
 
 /**
+ * @summary List quizzes
+ */
+export const ListQuizzesQueryParams = zod.object({
+  "classId": zod.coerce.number().optional(),
+  "subjectId": zod.coerce.number().optional()
+})
+
+export const ListQuizzesResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "subjectId": zod.number(),
+  "subjectName": zod.string(),
+  "classId": zod.number(),
+  "className": zod.string(),
+  "teacherId": zod.number(),
+  "teacherName": zod.string(),
+  "duration": zod.number(),
+  "status": zod.string(),
+  "questionsCount": zod.number(),
+  "createdAt": zod.string()
+})
+export const ListQuizzesResponse = zod.array(ListQuizzesResponseItem)
+
+
+/**
+ * @summary Create a quiz
+ */
+export const CreateQuizBody = zod.object({
+  "title": zod.string(),
+  "subjectId": zod.number(),
+  "classId": zod.number(),
+  "duration": zod.number().optional()
+})
+
+
+/**
+ * @summary Get quiz detail with questions
+ */
+export const GetQuizParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetQuizResponse = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "subjectName": zod.string(),
+  "className": zod.string(),
+  "duration": zod.number(),
+  "status": zod.string(),
+  "questions": zod.array(zod.object({
+  "id": zod.number(),
+  "quizId": zod.number(),
+  "text": zod.string(),
+  "type": zod.string(),
+  "order": zod.number(),
+  "points": zod.number(),
+  "choices": zod.array(zod.object({
+  "id": zod.number(),
+  "text": zod.string(),
+  "isCorrect": zod.boolean()
+}))
+}))
+})
+
+
+/**
+ * @summary Update quiz status
+ */
+export const UpdateQuizStatusParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateQuizStatusBody = zod.object({
+  "status": zod.enum(['draft', 'active', 'closed'])
+})
+
+export const UpdateQuizStatusResponse = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "subjectId": zod.number(),
+  "subjectName": zod.string(),
+  "classId": zod.number(),
+  "className": zod.string(),
+  "teacherId": zod.number(),
+  "teacherName": zod.string(),
+  "duration": zod.number(),
+  "status": zod.string(),
+  "questionsCount": zod.number(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Add a question to a quiz
+ */
+export const AddQuizQuestionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AddQuizQuestionBody = zod.object({
+  "text": zod.string(),
+  "type": zod.string().optional(),
+  "points": zod.number().optional(),
+  "choices": zod.array(zod.object({
+  "text": zod.string(),
+  "isCorrect": zod.boolean()
+})).optional()
+})
+
+
+/**
+ * @summary Submit quiz answers
+ */
+export const SubmitQuizParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SubmitQuizBody = zod.object({
+  "answers": zod.record(zod.string(), zod.string())
+})
+
+export const SubmitQuizResponse = zod.object({
+  "id": zod.number(),
+  "quizId": zod.number(),
+  "quizTitle": zod.string(),
+  "studentId": zod.number(),
+  "studentName": zod.string(),
+  "score": zod.number().nullish(),
+  "totalPoints": zod.number().optional(),
+  "percentage": zod.number().nullish(),
+  "submittedAt": zod.string()
+})
+
+
+/**
+ * @summary List responses for a quiz
+ */
+export const ListQuizResponsesParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListQuizResponsesResponseItem = zod.object({
+  "id": zod.number(),
+  "quizId": zod.number(),
+  "quizTitle": zod.string(),
+  "studentId": zod.number(),
+  "studentName": zod.string(),
+  "score": zod.number().nullish(),
+  "totalPoints": zod.number().optional(),
+  "percentage": zod.number().nullish(),
+  "submittedAt": zod.string()
+})
+export const ListQuizResponsesResponse = zod.array(ListQuizResponsesResponseItem)
+
+
+/**
+ * @summary List diary entries for current user
+ */
+export const ListDiaryEntriesResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "title": zod.string(),
+  "content": zod.string(),
+  "subjectId": zod.number().nullish(),
+  "subjectName": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListDiaryEntriesResponse = zod.array(ListDiaryEntriesResponseItem)
+
+
+/**
+ * @summary Create a diary entry
+ */
+export const CreateDiaryEntryBody = zod.object({
+  "title": zod.string(),
+  "content": zod.string(),
+  "subjectId": zod.number().optional()
+})
+
+
+/**
+ * @summary Update a diary entry
+ */
+export const UpdateDiaryEntryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateDiaryEntryBody = zod.object({
+  "title": zod.string(),
+  "content": zod.string(),
+  "subjectId": zod.number().optional()
+})
+
+export const UpdateDiaryEntryResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "title": zod.string(),
+  "content": zod.string(),
+  "subjectId": zod.number().nullish(),
+  "subjectName": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a diary entry
+ */
+export const DeleteDiaryEntryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary List competencies
+ */
+export const ListCompetenciesQueryParams = zod.object({
+  "subjectId": zod.coerce.number().optional()
+})
+
+export const ListCompetenciesResponseItem = zod.object({
+  "id": zod.number(),
+  "subjectId": zod.number(),
+  "subjectName": zod.string(),
+  "name": zod.string(),
+  "description": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListCompetenciesResponse = zod.array(ListCompetenciesResponseItem)
+
+
+/**
+ * @summary Create a competency definition
+ */
+export const CreateCompetencyBody = zod.object({
+  "subjectId": zod.number(),
+  "name": zod.string(),
+  "description": zod.string().optional()
+})
+
+
+/**
+ * @summary List student competency assessments
+ */
+export const ListStudentCompetenciesQueryParams = zod.object({
+  "studentId": zod.coerce.number().optional()
+})
+
+export const ListStudentCompetenciesResponseItem = zod.object({
+  "id": zod.number(),
+  "studentId": zod.number(),
+  "studentName": zod.string(),
+  "competencyId": zod.number(),
+  "competencyName": zod.string(),
+  "subjectName": zod.string(),
+  "level": zod.number(),
+  "teacherId": zod.number(),
+  "teacherName": zod.string(),
+  "date": zod.string(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListStudentCompetenciesResponse = zod.array(ListStudentCompetenciesResponseItem)
+
+
+/**
+ * @summary Assess a student competency
+ */
+export const CreateStudentCompetencyBody = zod.object({
+  "studentId": zod.number(),
+  "competencyId": zod.number(),
+  "level": zod.number(),
+  "date": zod.string(),
+  "notes": zod.string().optional()
+})
+
+
+/**
+ * @summary List forum threads
+ */
+export const ListForumThreadsQueryParams = zod.object({
+  "subjectId": zod.coerce.number().optional()
+})
+
+export const ListForumThreadsResponseItem = zod.object({
+  "id": zod.number(),
+  "subjectId": zod.number(),
+  "subjectName": zod.string(),
+  "authorId": zod.number(),
+  "authorName": zod.string(),
+  "classId": zod.number().nullish(),
+  "title": zod.string(),
+  "replyCount": zod.number(),
+  "createdAt": zod.string()
+})
+export const ListForumThreadsResponse = zod.array(ListForumThreadsResponseItem)
+
+
+/**
+ * @summary Create a forum thread
+ */
+export const CreateForumThreadBody = zod.object({
+  "subjectId": zod.number(),
+  "title": zod.string(),
+  "classId": zod.number().optional()
+})
+
+
+/**
+ * @summary List posts in a thread
+ */
+export const ListForumPostsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListForumPostsResponseItem = zod.object({
+  "id": zod.number(),
+  "threadId": zod.number(),
+  "authorId": zod.number(),
+  "authorName": zod.string(),
+  "content": zod.string(),
+  "createdAt": zod.string()
+})
+export const ListForumPostsResponse = zod.array(ListForumPostsResponseItem)
+
+
+/**
+ * @summary Reply to a thread
+ */
+export const CreateForumPostParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const CreateForumPostBody = zod.object({
+  "content": zod.string()
+})
+
+
+/**
+ * @summary List polls with vote counts
+ */
+export const ListPollsResponseItem = zod.object({
+  "id": zod.number(),
+  "question": zod.string(),
+  "authorId": zod.number(),
+  "authorName": zod.string(),
+  "classId": zod.number().nullish(),
+  "status": zod.string(),
+  "expiresAt": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "options": zod.array(zod.object({
+  "id": zod.number(),
+  "text": zod.string(),
+  "voteCount": zod.number()
+})),
+  "totalVotes": zod.number(),
+  "myVoteOptionId": zod.number().nullish()
+})
+export const ListPollsResponse = zod.array(ListPollsResponseItem)
+
+
+/**
+ * @summary Create a poll
+ */
+export const CreatePollBody = zod.object({
+  "question": zod.string(),
+  "options": zod.array(zod.string()),
+  "classId": zod.number().optional(),
+  "expiresAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Vote on a poll
+ */
+export const VotePollParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const VotePollBody = zod.object({
+  "optionId": zod.number()
+})
+
+export const VotePollResponse = zod.object({
+  "id": zod.number(),
+  "question": zod.string(),
+  "authorId": zod.number(),
+  "authorName": zod.string(),
+  "classId": zod.number().nullish(),
+  "status": zod.string(),
+  "expiresAt": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "options": zod.array(zod.object({
+  "id": zod.number(),
+  "text": zod.string(),
+  "voteCount": zod.number()
+})),
+  "totalVotes": zod.number(),
+  "myVoteOptionId": zod.number().nullish()
+})
+
+
+/**
+ * @summary Close or update poll
+ */
+export const UpdatePollStatusParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdatePollStatusBody = zod.object({
+  "status": zod.enum(['active', 'closed'])
+})
+
+export const UpdatePollStatusResponse = zod.object({
+  "id": zod.number(),
+  "question": zod.string(),
+  "authorId": zod.number(),
+  "authorName": zod.string(),
+  "classId": zod.number().nullish(),
+  "status": zod.string(),
+  "expiresAt": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "options": zod.array(zod.object({
+  "id": zod.number(),
+  "text": zod.string(),
+  "voteCount": zod.number()
+})),
+  "totalVotes": zod.number(),
+  "myVoteOptionId": zod.number().nullish()
+})
+
+
+/**
+ * @summary List field trips
+ */
+export const ListFieldTripsResponseItem = zod.object({
+  "id": zod.number(),
+  "teacherId": zod.number(),
+  "teacherName": zod.string(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "date": zod.string(),
+  "destination": zod.string(),
+  "budget": zod.number().nullish(),
+  "status": zod.string(),
+  "classId": zod.number().nullish(),
+  "participantCount": zod.number(),
+  "myStatus": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListFieldTripsResponse = zod.array(ListFieldTripsResponseItem)
+
+
+/**
+ * @summary Create a field trip
+ */
+export const CreateFieldTripBody = zod.object({
+  "title": zod.string(),
+  "description": zod.string().optional(),
+  "date": zod.string(),
+  "destination": zod.string(),
+  "budget": zod.number().optional(),
+  "classId": zod.number().optional()
+})
+
+
+/**
+ * @summary Update field trip status
+ */
+export const UpdateFieldTripStatusParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateFieldTripStatusBody = zod.object({
+  "status": zod.enum(['published', 'cancelled', 'draft'])
+})
+
+export const UpdateFieldTripStatusResponse = zod.object({
+  "id": zod.number(),
+  "teacherId": zod.number(),
+  "teacherName": zod.string(),
+  "title": zod.string(),
+  "description": zod.string().nullish(),
+  "date": zod.string(),
+  "destination": zod.string(),
+  "budget": zod.number().nullish(),
+  "status": zod.string(),
+  "classId": zod.number().nullish(),
+  "participantCount": zod.number(),
+  "myStatus": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Student joins a field trip
+ */
+export const JoinFieldTripParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Approve or decline a participant
+ */
+export const UpdateParticipantStatusParams = zod.object({
+  "id": zod.coerce.number(),
+  "studentId": zod.coerce.number()
+})
+
+export const UpdateParticipantStatusBody = zod.object({
+  "status": zod.enum(['approved', 'declined'])
+})
+
+export const UpdateParticipantStatusResponse = zod.object({
+  "id": zod.number(),
+  "fieldTripId": zod.number(),
+  "studentId": zod.number(),
+  "studentName": zod.string(),
+  "status": zod.string(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary List participants of a field trip
+ */
+export const ListFieldTripParticipantsParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ListFieldTripParticipantsResponseItem = zod.object({
+  "id": zod.number(),
+  "fieldTripId": zod.number(),
+  "studentId": zod.number(),
+  "studentName": zod.string(),
+  "status": zod.string(),
+  "createdAt": zod.string()
+})
+export const ListFieldTripParticipantsResponse = zod.array(ListFieldTripParticipantsResponseItem)
+
+
+/**
+ * @summary List rooms
+ */
+export const ListRoomsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "capacity": zod.number(),
+  "type": zod.string(),
+  "equipment": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListRoomsResponse = zod.array(ListRoomsResponseItem)
+
+
+/**
+ * @summary Create a room
+ */
+export const CreateRoomBody = zod.object({
+  "name": zod.string(),
+  "capacity": zod.number(),
+  "type": zod.string(),
+  "equipment": zod.string().optional()
+})
+
+
+/**
+ * @summary List room bookings
+ */
+export const ListRoomBookingsQueryParams = zod.object({
+  "roomId": zod.coerce.number().optional(),
+  "date": zod.coerce.string().optional()
+})
+
+export const ListRoomBookingsResponseItem = zod.object({
+  "id": zod.number(),
+  "roomId": zod.number(),
+  "roomName": zod.string(),
+  "teacherId": zod.number(),
+  "teacherName": zod.string(),
+  "date": zod.string(),
+  "startTime": zod.string(),
+  "endTime": zod.string(),
+  "purpose": zod.string(),
+  "createdAt": zod.string()
+})
+export const ListRoomBookingsResponse = zod.array(ListRoomBookingsResponseItem)
+
+
+/**
+ * @summary Book a room
+ */
+export const CreateRoomBookingBody = zod.object({
+  "roomId": zod.number(),
+  "date": zod.string(),
+  "startTime": zod.string(),
+  "endTime": zod.string(),
+  "purpose": zod.string()
+})
+
+
+/**
+ * @summary Delete a room booking
+ */
+export const DeleteRoomBookingParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Get aggregated analytics data
+ */
+export const GetAnalyticsSummaryResponse = zod.object({
+  "totalStudents": zod.number(),
+  "totalTeachers": zod.number(),
+  "totalClasses": zod.number(),
+  "avgGrade": zod.number(),
+  "attendanceRate": zod.number(),
+  "activeQuizzes": zod.number(),
+  "gradesBySubject": zod.array(zod.object({
+  "subjectName": zod.string(),
+  "average": zod.number()
+})),
+  "attendanceByMonth": zod.array(zod.object({
+  "month": zod.string(),
+  "rate": zod.number()
+})),
+  "gradeDistribution": zod.array(zod.object({
+  "range": zod.string(),
+  "count": zod.number()
+}))
+})
+
+
+/**
+ * @summary Download a certificate as PDF
+ */
+export const DownloadCertificateParams = zod.object({
+  "type": zod.enum(['iscrizione', 'frequenza', 'pagella'])
+})
+
+
+/**
  * @summary Get schedule for a class
  */
 export const ListScheduleQueryParams = zod.object({

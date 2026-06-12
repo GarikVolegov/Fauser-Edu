@@ -17,7 +17,14 @@ import {
   Users2,
   UserCircle,
   ShieldCheck,
-  Check
+  Check,
+  ClipboardList,
+  Award,
+  BarChart3,
+  MapPin,
+  Building2,
+  FileText,
+  TrendingUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -36,13 +43,22 @@ const navItems = [
   { href: "/registro", label: "Registro", icon: BookOpen },
   { href: "/classroom", label: "Classroom", icon: GraduationCap },
   { href: "/calendario", label: "Calendario", icon: CalendarDays },
+  { href: "/orario", label: "Orario", icon: Clock },
+  { href: "/aule", label: "Aule", icon: Building2 },
+  { href: "/quiz", label: "Quiz", icon: ClipboardList },
+  { href: "/diario", label: "Diario", icon: BookOpen },
+  { href: "/portfolio", label: "Portfolio", icon: Award },
+  { href: "/forum", label: "Forum", icon: MessageSquare },
+  { href: "/sondaggi", label: "Sondaggi", icon: BarChart3 },
+  { href: "/uscite", label: "Uscite", icon: MapPin },
   { href: "/comunicazioni", label: "Comunicazioni", icon: Bell },
   { href: "/messaggi", label: "Messaggi", icon: MessageSquare },
-  { href: "/orario", label: "Orario", icon: Clock },
   { href: "/giustificazioni", label: "Giustificazioni", icon: FileCheck2 },
   { href: "/colloqui", label: "Colloqui", icon: CalendarCheck2 },
   { href: "/libreria", label: "Libreria", icon: Library },
   { href: "/tutoraggio", label: "Tutoraggio", icon: Users2 },
+  { href: "/certificati", label: "Certificati", icon: FileText },
+  { href: "/analytics", label: "Analytics", icon: TrendingUp },
   { href: "/profilo", label: "Profilo", icon: UserCircle }
 ];
 
