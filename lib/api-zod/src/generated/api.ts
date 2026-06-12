@@ -669,6 +669,321 @@ export const GetUpcomingItemsResponse = zod.object({
 
 
 /**
+ * @summary Get schedule for a class
+ */
+export const ListScheduleQueryParams = zod.object({
+  "classId": zod.coerce.number()
+})
+
+export const ListScheduleResponseItem = zod.object({
+  "id": zod.number(),
+  "classId": zod.number(),
+  "dayOfWeek": zod.number(),
+  "hour": zod.number(),
+  "subjectId": zod.number(),
+  "subjectName": zod.string(),
+  "teacherId": zod.number(),
+  "teacherName": zod.string(),
+  "room": zod.string().nullish()
+})
+export const ListScheduleResponse = zod.array(ListScheduleResponseItem)
+
+
+/**
+ * @summary Create a schedule entry
+ */
+export const CreateScheduleEntryBody = zod.object({
+  "classId": zod.number(),
+  "dayOfWeek": zod.number(),
+  "hour": zod.number(),
+  "subjectId": zod.number(),
+  "teacherId": zod.number(),
+  "room": zod.string().optional()
+})
+
+
+/**
+ * @summary Delete a schedule entry
+ */
+export const DeleteScheduleEntryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary List justifications
+ */
+export const ListJustificationsQueryParams = zod.object({
+  "studentId": zod.coerce.number().optional()
+})
+
+export const ListJustificationsResponseItem = zod.object({
+  "id": zod.number(),
+  "attendanceId": zod.number(),
+  "studentId": zod.number(),
+  "reason": zod.string(),
+  "status": zod.string(),
+  "reviewedBy": zod.number().nullish(),
+  "reviewedAt": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "studentName": zod.string().optional(),
+  "attendanceDate": zod.string().optional(),
+  "reviewerName": zod.string().nullish()
+})
+export const ListJustificationsResponse = zod.array(ListJustificationsResponseItem)
+
+
+/**
+ * @summary Submit a justification
+ */
+export const CreateJustificationBody = zod.object({
+  "attendanceId": zod.number(),
+  "studentId": zod.number(),
+  "reason": zod.string()
+})
+
+
+/**
+ * @summary Approve or reject a justification
+ */
+export const ReviewJustificationParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ReviewJustificationBody = zod.object({
+  "status": zod.enum(['approved', 'rejected'])
+})
+
+export const ReviewJustificationResponse = zod.object({
+  "id": zod.number(),
+  "attendanceId": zod.number(),
+  "studentId": zod.number(),
+  "reason": zod.string(),
+  "status": zod.string(),
+  "reviewedBy": zod.number().nullish(),
+  "reviewedAt": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "studentName": zod.string().optional(),
+  "attendanceDate": zod.string().optional(),
+  "reviewerName": zod.string().nullish()
+})
+
+
+/**
+ * @summary List appointments
+ */
+export const ListAppointmentsQueryParams = zod.object({
+  "teacherId": zod.coerce.number().optional(),
+  "studentId": zod.coerce.number().optional(),
+  "date": zod.coerce.string().optional()
+})
+
+export const ListAppointmentsResponseItem = zod.object({
+  "id": zod.number(),
+  "teacherId": zod.number(),
+  "teacherName": zod.string(),
+  "studentId": zod.number(),
+  "studentName": zod.string(),
+  "date": zod.string(),
+  "timeSlot": zod.string(),
+  "status": zod.string(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListAppointmentsResponse = zod.array(ListAppointmentsResponseItem)
+
+
+/**
+ * @summary Book an appointment with a teacher
+ */
+export const CreateAppointmentBody = zod.object({
+  "teacherId": zod.number(),
+  "studentId": zod.number(),
+  "date": zod.string(),
+  "timeSlot": zod.string(),
+  "notes": zod.string().optional()
+})
+
+
+/**
+ * @summary Confirm or cancel an appointment
+ */
+export const UpdateAppointmentParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateAppointmentBody = zod.object({
+  "status": zod.enum(['confirmed', 'cancelled'])
+})
+
+export const UpdateAppointmentResponse = zod.object({
+  "id": zod.number(),
+  "teacherId": zod.number(),
+  "teacherName": zod.string(),
+  "studentId": zod.number(),
+  "studentName": zod.string(),
+  "date": zod.string(),
+  "timeSlot": zod.string(),
+  "status": zod.string(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary List my notifications
+ */
+export const ListNotificationsResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "type": zod.string(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "referenceId": zod.number().nullish(),
+  "referenceType": zod.string().nullish(),
+  "read": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const ListNotificationsResponse = zod.array(ListNotificationsResponseItem)
+
+
+/**
+ * @summary Mark all notifications as read
+ */
+export const MarkAllNotificationsReadResponse = zod.object({
+  "ok": zod.boolean()
+})
+
+
+/**
+ * @summary Mark a notification as read
+ */
+export const MarkNotificationReadParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const MarkNotificationReadResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number(),
+  "type": zod.string(),
+  "title": zod.string(),
+  "message": zod.string(),
+  "referenceId": zod.number().nullish(),
+  "referenceType": zod.string().nullish(),
+  "read": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary List behavior notes
+ */
+export const ListBehaviorNotesQueryParams = zod.object({
+  "studentId": zod.coerce.number().optional()
+})
+
+export const ListBehaviorNotesResponseItem = zod.object({
+  "id": zod.number(),
+  "studentId": zod.number(),
+  "studentName": zod.string(),
+  "teacherId": zod.number(),
+  "teacherName": zod.string(),
+  "type": zod.string(),
+  "description": zod.string(),
+  "date": zod.string(),
+  "createdAt": zod.string()
+})
+export const ListBehaviorNotesResponse = zod.array(ListBehaviorNotesResponseItem)
+
+
+/**
+ * @summary Create a behavior note
+ */
+export const CreateBehaviorNoteBody = zod.object({
+  "studentId": zod.number(),
+  "teacherId": zod.number(),
+  "type": zod.string(),
+  "description": zod.string(),
+  "date": zod.string()
+})
+
+
+/**
+ * @summary Delete a behavior note
+ */
+export const DeleteBehaviorNoteParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary List tutoring posts
+ */
+export const ListTutoringPostsQueryParams = zod.object({
+  "subjectId": zod.coerce.number().optional(),
+  "type": zod.enum(['offre', 'cerca']).optional()
+})
+
+export const ListTutoringPostsResponseItem = zod.object({
+  "id": zod.number(),
+  "authorId": zod.number(),
+  "authorName": zod.string(),
+  "subjectId": zod.number(),
+  "subjectName": zod.string(),
+  "type": zod.string(),
+  "description": zod.string(),
+  "status": zod.string(),
+  "classId": zod.number().nullish(),
+  "createdAt": zod.string()
+})
+export const ListTutoringPostsResponse = zod.array(ListTutoringPostsResponseItem)
+
+
+/**
+ * @summary Create a tutoring post
+ */
+export const CreateTutoringPostBody = zod.object({
+  "subjectId": zod.number(),
+  "type": zod.string(),
+  "description": zod.string(),
+  "classId": zod.number().optional()
+})
+
+
+/**
+ * @summary Update tutoring post status
+ */
+export const UpdateTutoringPostParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateTutoringPostBody = zod.object({
+  "status": zod.enum(['active', 'closed'])
+})
+
+export const UpdateTutoringPostResponse = zod.object({
+  "id": zod.number(),
+  "authorId": zod.number(),
+  "authorName": zod.string(),
+  "subjectId": zod.number(),
+  "subjectName": zod.string(),
+  "type": zod.string(),
+  "description": zod.string(),
+  "status": zod.string(),
+  "classId": zod.number().nullish(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a tutoring post
+ */
+export const DeleteTutoringPostParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
  * @summary Get current user email account config (no password)
  */
 export const GetEmailAccountResponse = zod.object({

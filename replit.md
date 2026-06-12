@@ -1,45 +1,77 @@
-# [Project name]
+# ITT G.Fauser — Piattaforma Scolastica Digitale
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Ecosistema scolastico digitale completo per studenti e docenti dell'ITT G.Fauser di Novara (indirizzi: Informatica, Logistica, Aeronautica).
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080)
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `DATABASE_URL` — Postgres connection string, `SESSION_SECRET` — for email password encryption
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
+- API: Express 5 + Clerk auth middleware
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
+- API codegen: Orval (from OpenAPI spec at `lib/api-spec/openapi.yaml`)
+- Frontend: React + Vite + Tailwind + shadcn/ui + Framer Motion + wouter
 - Build: esbuild (CJS bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- DB schema: `lib/db/src/schema/index.ts` (re-exports all tables)
+- API contract: `lib/api-spec/openapi.yaml`
+- Generated hooks: `lib/api-client-react/src/generated/`
+- Generated Zod schemas: `lib/api-zod/src/generated/`
+- API routes: `artifacts/api-server/src/routes/index.ts`
+- Frontend pages: `artifacts/fauser-platform/src/pages/`
+- Navigation: `artifacts/fauser-platform/src/components/layout/AppLayout.tsx`
+- Theme: `artifacts/fauser-platform/src/index.css` (navy + gold)
+
+## Product — Feature Matrix
+
+| Feature | Frontend Route | Backend Routes |
+|---------|---------------|----------------|
+| Registro elettronico (voti + presenze) | `/registro` | `/api/grades`, `/api/attendance` |
+| Classroom (compiti + materiali) | `/classroom` | `/api/assignments`, `/api/materials` |
+| Calendario eventi | `/calendario` | `/api/events` |
+| Comunicazioni/Annunci | `/comunicazioni` | `/api/announcements` |
+| Email client (IMAP/SMTP) | `/messaggi` | `/api/email` |
+| Chat di classe | `/messaggi` | `/api/groups` |
+| **Orario settimanale** | `/orario` | `/api/schedule` |
+| **Giustificazioni assenze** | `/giustificazioni` | `/api/justifications` |
+| **Prenotazione colloqui** | `/colloqui` | `/api/appointments` |
+| **Notifiche con badge** | (sidebar bell) | `/api/notifications` |
+| **Profilo + QR tessera** | `/profilo` | `/api/users/me` |
+| **Note disciplinari** | `/registro` (tab Note) | `/api/behavior-notes` |
+| **Libreria risorse condivise** | `/libreria` | `/api/materials` |
+| **Bacheca tutoraggio** | `/tutoraggio` | `/api/tutoring` |
+| **Panel admin segreteria** | `/admin` | existing endpoints |
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
-
-## Product
-
-_Describe the high-level user-facing capabilities of this app once they exist._
-
-## User preferences
-
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Contract-first API: OpenAPI spec drives Orval codegen → typed hooks + Zod validators; always edit the spec before writing routes.
+- Orval naming pitfall: component schema names in the spec must NOT match auto-generated `{OperationId}Body` names. For PATCH endpoints with inline bodies, use named `$ref` schemas (e.g. `JustificationReviewInput`, not an inline body).
+- Clerk auth: `requireAuth` middleware + `getOrCreateUser` helper in `routes/auth.ts` sync Clerk users to the local DB users table.
+- Grade values stored as `numeric` in DB — always serialize with `parseFloat(String(g.value))`.
+- Email passwords encrypted with AES-256-GCM, key derived from `SESSION_SECRET`.
+- New API endpoints that don't have generated hooks yet: use `useQuery` + `useMutation` from @tanstack/react-query with manual fetch + `getToken()` from `useAuth()`.
+- DB class table uses `anno` (integer) and `sezione` (text), not `year`/`section`.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- After any change to `lib/db/schema/`: run `pnpm --filter @workspace/db run push` then `pnpm --filter @workspace/api-spec run codegen`.
+- After adding new OpenAPI paths: run codegen before touching the frontend.
+- `wouter` Link renders its own `<a>` — never nest `<a>` inside `<Link>`.
+- React Query v5 `UseQueryOptions` has `queryKey` as required — Orval-generated hook second arg `{ query: { enabled } }` pattern will complain. Just omit the options arg or use the hook without enabled constraint.
+- `useCreateClass()` (and all Orval mutation hooks) return a `UseMutationResult` — call them directly as a hook, not inside `useMutation({ mutationFn: useCreateClass() })`.
 
-## Pointers
+## User preferences
 
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Italian UI, English code
+- Navy + gold theme
+- Dense, information-rich layouts

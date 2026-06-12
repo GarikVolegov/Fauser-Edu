@@ -17,6 +17,13 @@ import Classroom from "@/pages/Classroom";
 import Calendario from "@/pages/Calendario";
 import Comunicazioni from "@/pages/Comunicazioni";
 import Messaggi from "@/pages/Messaggi";
+import Orario from "@/pages/Orario";
+import Profilo from "@/pages/Profilo";
+import Giustificazioni from "@/pages/Giustificazioni";
+import Colloqui from "@/pages/Colloqui";
+import Libreria from "@/pages/Libreria";
+import Tutoraggio from "@/pages/Tutoraggio";
+import Admin from "@/pages/Admin";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -228,6 +235,34 @@ function ClerkProviderWithRoutes() {
 
           <Route path="/messaggi">
             <ProtectedRoute component={Messaggi} />
+          </Route>
+
+          <Route path="/orario">
+            <ProtectedRoute component={Orario} />
+          </Route>
+          
+          <Route path="/giustificazioni">
+            <ProtectedRoute component={Giustificazioni} />
+          </Route>
+          
+          <Route path="/colloqui">
+            <ProtectedRoute component={Colloqui} />
+          </Route>
+          
+          <Route path="/libreria">
+            <ProtectedRoute component={Libreria} />
+          </Route>
+          
+          <Route path="/tutoraggio">
+            <ProtectedRoute component={Tutoraggio} />
+          </Route>
+          
+          <Route path="/profilo">
+            <ProtectedRoute component={Profilo} />
+          </Route>
+
+          <Route path="/admin">
+            <ProtectedRoute component={Admin} />
           </Route>
           
           <Route component={NotFound} />

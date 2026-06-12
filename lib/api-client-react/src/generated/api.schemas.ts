@@ -452,6 +452,156 @@ export interface DashboardSummary {
   recentGrades: Grade[];
 }
 
+export interface ScheduleEntry {
+  id: number;
+  classId: number;
+  dayOfWeek: number;
+  hour: number;
+  subjectId: number;
+  subjectName: string;
+  teacherId: number;
+  teacherName: string;
+  room?: string | null;
+}
+
+export interface ScheduleEntryInput {
+  classId: number;
+  dayOfWeek: number;
+  hour: number;
+  subjectId: number;
+  teacherId: number;
+  room?: string;
+}
+
+export interface Justification {
+  id: number;
+  attendanceId: number;
+  studentId: number;
+  reason: string;
+  status: string;
+  reviewedBy?: number | null;
+  reviewedAt?: string | null;
+  createdAt: string;
+  studentName?: string;
+  attendanceDate?: string;
+  reviewerName?: string | null;
+}
+
+export type JustificationReviewInputStatus = typeof JustificationReviewInputStatus[keyof typeof JustificationReviewInputStatus];
+
+
+export const JustificationReviewInputStatus = {
+  approved: 'approved',
+  rejected: 'rejected',
+} as const;
+
+export interface JustificationReviewInput {
+  status: JustificationReviewInputStatus;
+}
+
+export interface JustificationInput {
+  attendanceId: number;
+  studentId: number;
+  reason: string;
+}
+
+export interface Appointment {
+  id: number;
+  teacherId: number;
+  teacherName: string;
+  studentId: number;
+  studentName: string;
+  date: string;
+  timeSlot: string;
+  status: string;
+  notes?: string | null;
+  createdAt: string;
+}
+
+export type AppointmentStatusInputStatus = typeof AppointmentStatusInputStatus[keyof typeof AppointmentStatusInputStatus];
+
+
+export const AppointmentStatusInputStatus = {
+  confirmed: 'confirmed',
+  cancelled: 'cancelled',
+} as const;
+
+export interface AppointmentStatusInput {
+  status: AppointmentStatusInputStatus;
+}
+
+export interface AppointmentInput {
+  teacherId: number;
+  studentId: number;
+  date: string;
+  timeSlot: string;
+  notes?: string;
+}
+
+export interface AppNotification {
+  id: number;
+  userId: number;
+  type: string;
+  title: string;
+  message: string;
+  referenceId?: number | null;
+  referenceType?: string | null;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface BehaviorNote {
+  id: number;
+  studentId: number;
+  studentName: string;
+  teacherId: number;
+  teacherName: string;
+  type: string;
+  description: string;
+  date: string;
+  createdAt: string;
+}
+
+export interface BehaviorNoteInput {
+  studentId: number;
+  teacherId: number;
+  type: string;
+  description: string;
+  date: string;
+}
+
+export interface TutoringPost {
+  id: number;
+  authorId: number;
+  authorName: string;
+  subjectId: number;
+  subjectName: string;
+  type: string;
+  description: string;
+  status: string;
+  classId?: number | null;
+  createdAt: string;
+}
+
+export type TutoringPostStatusInputStatus = typeof TutoringPostStatusInputStatus[keyof typeof TutoringPostStatusInputStatus];
+
+
+export const TutoringPostStatusInputStatus = {
+  active: 'active',
+  closed: 'closed',
+} as const;
+
+export interface TutoringPostStatusInput {
+  status: TutoringPostStatusInputStatus;
+}
+
+export interface TutoringPostInput {
+  subjectId: number;
+  type: string;
+  description: string;
+  classId?: number;
+}
+
 export interface UpcomingItems {
   assignments: Assignment[];
   events: Event[];
@@ -621,6 +771,41 @@ from?: string | null;
  */
 to?: string | null;
 };
+
+export type ListScheduleParams = {
+classId: number;
+};
+
+export type ListJustificationsParams = {
+studentId?: number;
+};
+
+export type ListAppointmentsParams = {
+teacherId?: number;
+studentId?: number;
+date?: string;
+};
+
+export type MarkAllNotificationsRead200 = {
+  ok: boolean;
+};
+
+export type ListBehaviorNotesParams = {
+studentId?: number;
+};
+
+export type ListTutoringPostsParams = {
+subjectId?: number;
+type?: ListTutoringPostsType;
+};
+
+export type ListTutoringPostsType = typeof ListTutoringPostsType[keyof typeof ListTutoringPostsType];
+
+
+export const ListTutoringPostsType = {
+  offre: 'offre',
+  cerca: 'cerca',
+} as const;
 
 export type GetEmailInboxParams = {
 limit?: number;

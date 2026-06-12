@@ -730,6 +730,375 @@ paths:
               schema:
                 $ref: "#/components/schemas/UpcomingItems"
 
+  /schedule:
+    get:
+      operationId: listSchedule
+      tags: [schedule]
+      summary: Get schedule for a class
+      parameters:
+        - in: query
+          name: classId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Schedule entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScheduleEntry"
+    post:
+      operationId: createScheduleEntry
+      tags: [schedule]
+      summary: Create a schedule entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScheduleEntryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScheduleEntry"
+
+  /schedule/{id}:
+    delete:
+      operationId: deleteScheduleEntry
+      tags: [schedule]
+      summary: Delete a schedule entry
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /justifications:
+    get:
+      operationId: listJustifications
+      tags: [justifications]
+      summary: List justifications
+      parameters:
+        - in: query
+          name: studentId
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Justifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Justification"
+    post:
+      operationId: createJustification
+      tags: [justifications]
+      summary: Submit a justification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JustificationInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Justification"
+
+  /justifications/{id}:
+    patch:
+      operationId: reviewJustification
+      tags: [justifications]
+      summary: Approve or reject a justification
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JustificationReviewInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Justification"
+
+  /appointments:
+    get:
+      operationId: listAppointments
+      tags: [appointments]
+      summary: List appointments
+      parameters:
+        - in: query
+          name: teacherId
+          schema:
+            type: integer
+        - in: query
+          name: studentId
+          schema:
+            type: integer
+        - in: query
+          name: date
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Appointments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Appointment"
+    post:
+      operationId: createAppointment
+      tags: [appointments]
+      summary: Book an appointment with a teacher
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+
+  /appointments/{id}:
+    patch:
+      operationId: updateAppointment
+      tags: [appointments]
+      summary: Confirm or cancel an appointment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointmentStatusInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Appointment"
+
+  /notifications:
+    get:
+      operationId: listNotifications
+      tags: [notifications]
+      summary: List my notifications
+      responses:
+        "200":
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AppNotification"
+
+  /notifications/read-all:
+    post:
+      operationId: markAllNotificationsRead
+      tags: [notifications]
+      summary: Mark all notifications as read
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                required:
+                  - ok
+
+  /notifications/{id}/read:
+    patch:
+      operationId: markNotificationRead
+      tags: [notifications]
+      summary: Mark a notification as read
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppNotification"
+
+  /behavior-notes:
+    get:
+      operationId: listBehaviorNotes
+      tags: [behavior]
+      summary: List behavior notes
+      parameters:
+        - in: query
+          name: studentId
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Behavior notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BehaviorNote"
+    post:
+      operationId: createBehaviorNote
+      tags: [behavior]
+      summary: Create a behavior note
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BehaviorNoteInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BehaviorNote"
+
+  /behavior-notes/{id}:
+    delete:
+      operationId: deleteBehaviorNote
+      tags: [behavior]
+      summary: Delete a behavior note
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /tutoring:
+    get:
+      operationId: listTutoringPosts
+      tags: [tutoring]
+      summary: List tutoring posts
+      parameters:
+        - in: query
+          name: subjectId
+          schema:
+            type: integer
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [offre, cerca]
+      responses:
+        "200":
+          description: Tutoring posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TutoringPost"
+    post:
+      operationId: createTutoringPost
+      tags: [tutoring]
+      summary: Create a tutoring post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TutoringPostInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TutoringPost"
+
+  /tutoring/{id}:
+    patch:
+      operationId: updateTutoringPost
+      tags: [tutoring]
+      summary: Update tutoring post status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TutoringPostStatusInput"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TutoringPost"
+    delete:
+      operationId: deleteTutoringPost
+      tags: [tutoring]
+      summary: Delete a tutoring post
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
   /email/account:
     get:
       operationId: getEmailAccount
@@ -1453,6 +1822,326 @@ components:
         - upcomingEvents
         - unreadAnnouncements
         - recentGrades
+
+    ScheduleEntry:
+      type: object
+      properties:
+        id:
+          type: integer
+        classId:
+          type: integer
+        dayOfWeek:
+          type: integer
+        hour:
+          type: integer
+        subjectId:
+          type: integer
+        subjectName:
+          type: string
+        teacherId:
+          type: integer
+        teacherName:
+          type: string
+        room:
+          type: string
+          nullable: true
+      required:
+        - id
+        - classId
+        - dayOfWeek
+        - hour
+        - subjectId
+        - subjectName
+        - teacherId
+        - teacherName
+
+    ScheduleEntryInput:
+      type: object
+      properties:
+        classId:
+          type: integer
+        dayOfWeek:
+          type: integer
+        hour:
+          type: integer
+        subjectId:
+          type: integer
+        teacherId:
+          type: integer
+        room:
+          type: string
+      required:
+        - classId
+        - dayOfWeek
+        - hour
+        - subjectId
+        - teacherId
+
+    Justification:
+      type: object
+      properties:
+        id:
+          type: integer
+        attendanceId:
+          type: integer
+        studentId:
+          type: integer
+        reason:
+          type: string
+        status:
+          type: string
+        reviewedBy:
+          type: integer
+          nullable: true
+        reviewedAt:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+        studentName:
+          type: string
+        attendanceDate:
+          type: string
+        reviewerName:
+          type: string
+          nullable: true
+      required:
+        - id
+        - attendanceId
+        - studentId
+        - reason
+        - status
+        - createdAt
+
+    JustificationReviewInput:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [approved, rejected]
+      required:
+        - status
+
+    JustificationInput:
+      type: object
+      properties:
+        attendanceId:
+          type: integer
+        studentId:
+          type: integer
+        reason:
+          type: string
+      required:
+        - attendanceId
+        - studentId
+        - reason
+
+    Appointment:
+      type: object
+      properties:
+        id:
+          type: integer
+        teacherId:
+          type: integer
+        teacherName:
+          type: string
+        studentId:
+          type: integer
+        studentName:
+          type: string
+        date:
+          type: string
+        timeSlot:
+          type: string
+        status:
+          type: string
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - teacherId
+        - teacherName
+        - studentId
+        - studentName
+        - date
+        - timeSlot
+        - status
+        - createdAt
+
+    AppointmentStatusInput:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [confirmed, cancelled]
+      required:
+        - status
+
+    AppointmentInput:
+      type: object
+      properties:
+        teacherId:
+          type: integer
+        studentId:
+          type: integer
+        date:
+          type: string
+        timeSlot:
+          type: string
+        notes:
+          type: string
+      required:
+        - teacherId
+        - studentId
+        - date
+        - timeSlot
+
+    AppNotification:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        type:
+          type: string
+        title:
+          type: string
+        message:
+          type: string
+        referenceId:
+          type: integer
+          nullable: true
+        referenceType:
+          type: string
+          nullable: true
+        read:
+          type: boolean
+        createdAt:
+          type: string
+      required:
+        - id
+        - userId
+        - type
+        - title
+        - message
+        - read
+        - createdAt
+
+    BehaviorNote:
+      type: object
+      properties:
+        id:
+          type: integer
+        studentId:
+          type: integer
+        studentName:
+          type: string
+        teacherId:
+          type: integer
+        teacherName:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+        createdAt:
+          type: string
+      required:
+        - id
+        - studentId
+        - studentName
+        - teacherId
+        - teacherName
+        - type
+        - description
+        - date
+        - createdAt
+
+    BehaviorNoteInput:
+      type: object
+      properties:
+        studentId:
+          type: integer
+        teacherId:
+          type: integer
+        type:
+          type: string
+        description:
+          type: string
+        date:
+          type: string
+      required:
+        - studentId
+        - teacherId
+        - type
+        - description
+        - date
+
+    TutoringPost:
+      type: object
+      properties:
+        id:
+          type: integer
+        authorId:
+          type: integer
+        authorName:
+          type: string
+        subjectId:
+          type: integer
+        subjectName:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        classId:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+      required:
+        - id
+        - authorId
+        - authorName
+        - subjectId
+        - subjectName
+        - type
+        - description
+        - status
+        - createdAt
+
+    TutoringPostStatusInput:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [active, closed]
+      required:
+        - status
+
+    TutoringPostInput:
+      type: object
+      properties:
+        subjectId:
+          type: integer
+        type:
+          type: string
+        description:
+          type: string
+        classId:
+          type: integer
+      required:
+        - subjectId
+        - type
+        - description
 
     UpcomingItems:
       type: object

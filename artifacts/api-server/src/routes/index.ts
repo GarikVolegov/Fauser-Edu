@@ -12,6 +12,12 @@ import announcementsRouter from "./announcements";
 import dashboardRouter from "./dashboard";
 import emailRouter from "./email";
 import groupsRouter from "./groups";
+import scheduleRouter from "./schedule";
+import justificationsRouter from "./justifications";
+import appointmentsRouter from "./appointments";
+import notificationsRouter from "./notifications";
+import behaviorNotesRouter from "./behaviorNotes";
+import tutoringRouter from "./tutoring";
 
 const router: IRouter = Router();
 
@@ -28,5 +34,11 @@ router.use("/announcements", announcementsRouter);
 router.use("/dashboard", dashboardRouter);
 router.use("/email", emailRouter);
 router.use("/groups", groupsRouter);
+router.use("/schedule", scheduleRouter);
+router.use("/justifications", justificationsRouter);
+router.use("/appointments", appointmentsRouter);
+router.use("/notifications", notificationsRouter);
+router.use("/behavior-notes", behaviorNotesRouter);
+router.use("/tutoring", tutoringRouter);
 
 export default router;

@@ -1,1 +1,5 @@
 - [Fauser Platform Stack](fauser-stack.md) — full-stack school platform, key conventions and gotchas for this project
+- [Orval naming conflicts](orval-naming.md) — PATCH inline body schemas generate duplicate exports; always use named $ref schemas for PATCH request bodies.
+- [Orval mutation hooks](orval-mutation-hooks.md) — Orval mutation hooks are UseMutationResult; never wrap in useMutation({ mutationFn: useHook() }).
+- [React Query v5 + Orval options](rq-orval-options.md) — UseQueryOptions.queryKey required in v5; omit second arg to Orval hooks rather than passing { query: { enabled } }.
+- [DB class fields](db-class-fields.md) — Class table uses anno (integer) and sezione (text), not year/section.
