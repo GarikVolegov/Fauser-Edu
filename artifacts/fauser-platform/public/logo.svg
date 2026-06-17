@@ -1,6 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
-  <rect width="512" height="512" rx="128" fill="#0F172A"/>
-  <path d="M256 96L128 160V320C128 392.5 183.5 458.5 256 480C328.5 458.5 384 392.5 384 320V160L256 96Z" stroke="#F59E0B" stroke-width="24" stroke-linejoin="round"/>
-  <text x="256" y="270" font-family="Arial, sans-serif" font-weight="bold" font-size="160" fill="#F59E0B" text-anchor="middle" dominant-baseline="middle">F</text>
-  <text x="256" y="380" font-family="Arial, sans-serif" font-weight="bold" font-size="64" fill="#F59E0B" text-anchor="middle" dominant-baseline="middle">ITT</text>
-</svg>
