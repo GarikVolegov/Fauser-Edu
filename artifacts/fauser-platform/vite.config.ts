@@ -70,6 +70,22 @@ export default defineConfig(async ({ command }) => {
     build: {
       outDir: path.resolve(import.meta.dirname, "dist/public"),
       emptyOutDir: true,
+      rollupOptions: {
+        output: {
+          // Split heavy vendors into their own chunks so the initial bundle
+          // stays small; charts (recharts/d3) load only with the Analytics page.
+          manualChunks(id) {
+            if (!id.includes("node_modules")) return;
+            if (/\/react(-dom)?\//.test(id) || id.includes("scheduler"))
+              return "react-vendor";
+            if (id.includes("@clerk")) return "clerk-vendor";
+            if (id.includes("framer-motion")) return "motion-vendor";
+            if (id.includes("recharts") || id.includes("/d3-"))
+              return "charts-vendor";
+            if (id.includes("@radix-ui")) return "radix-vendor";
+          },
+        },
+      },
     },
     server: {
       port,

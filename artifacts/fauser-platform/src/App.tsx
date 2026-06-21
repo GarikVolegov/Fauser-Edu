@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, lazy, Suspense } from "react";
 import { Switch, Route, Redirect, useLocation, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { ClerkProvider, SignIn, SignUp, Show, useClerk, useUser } from '@clerk/react';
@@ -11,29 +11,31 @@ import NotFound from "@/pages/not-found";
 
 import { AppLayout } from "@/components/layout/AppLayout";
 import Landing from "@/pages/Landing";
-import Dashboard from "@/pages/Dashboard";
-import Registro from "@/pages/Registro";
-import Classroom from "@/pages/Classroom";
-import Calendario from "@/pages/Calendario";
-import Comunicazioni from "@/pages/Comunicazioni";
-import Messaggi from "@/pages/Messaggi";
-import Orario from "@/pages/Orario";
-import Profilo from "@/pages/Profilo";
-import Giustificazioni from "@/pages/Giustificazioni";
-import Colloqui from "@/pages/Colloqui";
-import Libreria from "@/pages/Libreria";
-import Tutoraggio from "@/pages/Tutoraggio";
-import Admin from "@/pages/Admin";
 
-import Quiz from "@/pages/Quiz";
-import Diario from "@/pages/Diario";
-import Portfolio from "@/pages/Portfolio";
-import Forum from "@/pages/Forum";
-import Sondaggi from "@/pages/Sondaggi";
-import UsciteDidattiche from "@/pages/UsciteDidattiche";
-import Aule from "@/pages/Aule";
-import Certificati from "@/pages/Certificati";
-import Analytics from "@/pages/Analytics";
+// Authenticated pages are code-split: each becomes its own chunk loaded on
+// demand, keeping the initial bundle small. Landing/NotFound stay eager.
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Registro = lazy(() => import("@/pages/Registro"));
+const Classroom = lazy(() => import("@/pages/Classroom"));
+const Calendario = lazy(() => import("@/pages/Calendario"));
+const Comunicazioni = lazy(() => import("@/pages/Comunicazioni"));
+const Messaggi = lazy(() => import("@/pages/Messaggi"));
+const Orario = lazy(() => import("@/pages/Orario"));
+const Profilo = lazy(() => import("@/pages/Profilo"));
+const Giustificazioni = lazy(() => import("@/pages/Giustificazioni"));
+const Colloqui = lazy(() => import("@/pages/Colloqui"));
+const Libreria = lazy(() => import("@/pages/Libreria"));
+const Tutoraggio = lazy(() => import("@/pages/Tutoraggio"));
+const Admin = lazy(() => import("@/pages/Admin"));
+const Quiz = lazy(() => import("@/pages/Quiz"));
+const Diario = lazy(() => import("@/pages/Diario"));
+const Portfolio = lazy(() => import("@/pages/Portfolio"));
+const Forum = lazy(() => import("@/pages/Forum"));
+const Sondaggi = lazy(() => import("@/pages/Sondaggi"));
+const UsciteDidattiche = lazy(() => import("@/pages/UsciteDidattiche"));
+const Aule = lazy(() => import("@/pages/Aule"));
+const Certificati = lazy(() => import("@/pages/Certificati"));
+const Analytics = lazy(() => import("@/pages/Analytics"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -222,6 +224,13 @@ function ClerkProviderWithRoutes() {
     >
       <QueryClientProvider client={queryClient}>
         <ClerkQueryClientCacheInvalidator />
+        <Suspense
+          fallback={
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          }
+        >
         <Switch>
           <Route path="/" component={HomeRedirect} />
           
@@ -318,6 +327,7 @@ function ClerkProviderWithRoutes() {
           
           <Route component={NotFound} />
         </Switch>
+        </Suspense>
       </QueryClientProvider>
     </ClerkProvider>
   );
