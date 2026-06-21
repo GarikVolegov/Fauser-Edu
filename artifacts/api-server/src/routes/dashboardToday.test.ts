@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mapTeacherToday } from "./dashboardToday";
+import { mapTeacherToday, mapStaffToday } from "./dashboardToday";
 
 describe("mapTeacherToday", () => {
   it("returns today's lessons sorted by hour with attendanceTaken flag", () => {
@@ -59,5 +59,49 @@ describe("mapTeacherToday", () => {
       classNames: new Map(), subjectNames: new Map(), studentNames: new Map(),
     });
     expect(result.nextAppointment).toBeNull();
+  });
+});
+
+describe("mapStaffToday", () => {
+  it("maps pending justifications and today's absences with names and classes", () => {
+    const result = mapStaffToday({
+      today: "2026-06-22",
+      dayOfWeek: 1,
+      justifications: [{ id: 1, studentId: 5, reason: "Visita medica", status: "pending", createdAt: "2026-06-22T08:00:00.000Z" }],
+      attendance: [
+        { classId: 3, studentId: 5, date: "2026-06-22", status: "assente" },
+        { classId: 3, studentId: 6, date: "2026-06-22", status: "presente" },
+      ],
+      schedule: [],
+      classNames: new Map([[3, "3A"]]),
+      studentNames: new Map([[5, "Mario Rossi"], [6, "Lucia Bianchi"]]),
+      studentClassIds: new Map([[5, 3], [6, 3]]),
+    });
+    expect(result.pendingJustifications).toEqual([
+      { id: 1, studentName: "Mario Rossi", className: "3A", reason: "Visita medica", createdAt: "2026-06-22T08:00:00.000Z" },
+    ]);
+    expect(result.todayAbsences).toEqual([{ studentId: 5, studentName: "Mario Rossi", className: "3A" }]);
+    expect(result.pendingTotal).toBe(1);
+  });
+
+  it("flags a room conflict when two lessons share room+hour today", () => {
+    const result = mapStaffToday({
+      today: "2026-06-22",
+      dayOfWeek: 1,
+      justifications: [],
+      attendance: [],
+      schedule: [
+        { id: 1, classId: 3, dayOfWeek: 1, hour: 1, subjectId: 7, teacherId: 9, room: "A1" },
+        { id: 2, classId: 4, dayOfWeek: 1, hour: 1, subjectId: 8, teacherId: 10, room: "A1" },
+        { id: 3, classId: 5, dayOfWeek: 1, hour: 2, subjectId: 8, teacherId: 10, room: "B2" },
+        { id: 4, classId: 6, dayOfWeek: 2, hour: 1, subjectId: 8, teacherId: 10, room: "C3" },
+      ],
+      classNames: new Map(),
+      studentNames: new Map(),
+      studentClassIds: new Map(),
+    });
+    expect(result.roomsToday.find((r) => r.room === "A1")).toMatchObject({ slots: 2, conflict: true });
+    expect(result.roomsToday.find((r) => r.room === "B2")).toMatchObject({ slots: 1, conflict: false });
+    expect(result.roomsToday.find((r) => r.room === "C3")).toBeUndefined();
   });
 });

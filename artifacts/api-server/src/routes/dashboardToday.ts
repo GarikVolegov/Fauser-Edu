@@ -64,3 +64,51 @@ export function mapTeacherToday(args: {
 
   return { todayLessons, assignmentsDue, nextAppointment };
 }
+
+export function mapStaffToday(args: {
+  today: string;
+  dayOfWeek: number;
+  justifications: JustificationRow[];
+  attendance: AttendanceRow[];
+  schedule: ScheduleRow[];
+  classNames: Map<number, string>;
+  studentNames: Map<number, string>;
+  studentClassIds: Map<number, number>;
+}): { pendingJustifications: PendingJustification[]; todayAbsences: TodayAbsence[]; roomsToday: TodayRoom[]; pendingTotal: number } {
+  const { today, dayOfWeek, justifications, attendance, schedule, classNames, studentNames, studentClassIds } = args;
+
+  const pendingJustifications: PendingJustification[] = justifications
+    .filter((j) => j.status === "pending")
+    .map((j) => ({
+      id: j.id,
+      studentName: studentNames.get(j.studentId) ?? DASH,
+      className: classNames.get(studentClassIds.get(j.studentId) ?? -1) ?? DASH,
+      reason: j.reason,
+      createdAt: j.createdAt,
+    }));
+
+  const todayAbsences: TodayAbsence[] = attendance
+    .filter((a) => a.date === today && a.status === "assente")
+    .map((a) => ({
+      studentId: a.studentId,
+      studentName: studentNames.get(a.studentId) ?? DASH,
+      className: classNames.get(a.classId) ?? DASH,
+    }));
+
+  const todaySched = schedule.filter((s) => s.dayOfWeek === dayOfWeek && s.room);
+  const byRoom = new Map<string, ScheduleRow[]>();
+  for (const s of todaySched) {
+    const arr = byRoom.get(s.room as string) ?? [];
+    arr.push(s);
+    byRoom.set(s.room as string, arr);
+  }
+  const roomsToday: TodayRoom[] = [...byRoom.entries()]
+    .map(([room, rows]) => {
+      const hourCounts = new Map<number, number>();
+      for (const r of rows) hourCounts.set(r.hour, (hourCounts.get(r.hour) ?? 0) + 1);
+      return { room, slots: rows.length, conflict: [...hourCounts.values()].some((c) => c > 1) };
+    })
+    .sort((a, b) => a.room.localeCompare(b.room));
+
+  return { pendingJustifications, todayAbsences, roomsToday, pendingTotal: pendingJustifications.length };
+}
