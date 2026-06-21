@@ -50,7 +50,8 @@ export function useClerk() {
     openSignUp: () => {},
     // Pages subscribe to user changes; in dev the user is static, so just
     // return a no-op unsubscribe.
-    addListener: (_cb: (payload: { user: typeof DEV_USER }) => void) => () => {},
+    addListener:
+      (_cb: (payload: { user: typeof DEV_USER }) => void) => () => {},
   };
 }
 

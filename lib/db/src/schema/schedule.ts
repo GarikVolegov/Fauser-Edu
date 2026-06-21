@@ -12,6 +12,8 @@ export const scheduleTable = pgTable("schedule", {
   room: text("room"),
 });
 
-export const insertScheduleSchema = createInsertSchema(scheduleTable).omit({ id: true });
+export const insertScheduleSchema = createInsertSchema(scheduleTable).omit({
+  id: true,
+});
 export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
 export type Schedule = typeof scheduleTable.$inferSelect;

@@ -1,4 +1,11 @@
-import { pgTable, serial, integer, text, timestamp, boolean } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  serial,
+  integer,
+  text,
+  timestamp,
+  boolean,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -38,7 +45,10 @@ export const quizResponsesTable = pgTable("quiz_responses", {
   submittedAt: timestamp("submitted_at").notNull().defaultNow(),
 });
 
-export const insertQuizSchema = createInsertSchema(quizzesTable).omit({ id: true, createdAt: true });
+export const insertQuizSchema = createInsertSchema(quizzesTable).omit({
+  id: true,
+  createdAt: true,
+});
 export type InsertQuiz = z.infer<typeof insertQuizSchema>;
 export type Quiz = typeof quizzesTable.$inferSelect;
 export type QuizQuestion = typeof quizQuestionsTable.$inferSelect;

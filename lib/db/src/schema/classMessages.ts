@@ -10,6 +10,8 @@ export const classMessagesTable = pgTable("class_messages", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const insertClassMessageSchema = createInsertSchema(classMessagesTable).omit({ id: true, createdAt: true });
+export const insertClassMessageSchema = createInsertSchema(
+  classMessagesTable,
+).omit({ id: true, createdAt: true });
 export type InsertClassMessage = z.infer<typeof insertClassMessageSchema>;
 export type ClassMessage = typeof classMessagesTable.$inferSelect;

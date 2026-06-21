@@ -1,4 +1,11 @@
-import { pgTable, serial, integer, text, date, timestamp } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  serial,
+  integer,
+  text,
+  date,
+  timestamp,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -21,8 +28,12 @@ export const studentCompetenciesTable = pgTable("student_competencies", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const insertCompetencySchema = createInsertSchema(competenciesTable).omit({ id: true, createdAt: true });
-export const insertStudentCompetencySchema = createInsertSchema(studentCompetenciesTable).omit({ id: true, createdAt: true });
+export const insertCompetencySchema = createInsertSchema(
+  competenciesTable,
+).omit({ id: true, createdAt: true });
+export const insertStudentCompetencySchema = createInsertSchema(
+  studentCompetenciesTable,
+).omit({ id: true, createdAt: true });
 export type InsertCompetency = z.infer<typeof insertCompetencySchema>;
 export type Competency = typeof competenciesTable.$inferSelect;
 export type StudentCompetency = typeof studentCompetenciesTable.$inferSelect;

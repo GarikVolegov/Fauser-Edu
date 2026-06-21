@@ -16,7 +16,10 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import readline from "node:readline";
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const repoRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
 
 // --- env ---------------------------------------------------------------
 function loadEnvLocal() {
@@ -48,9 +51,9 @@ let shuttingDown = false;
 function prefix(child, tag, color) {
   const paint = (s) => `\x1b[${color}m[${tag}]\x1b[0m ${s}`;
   for (const stream of [child.stdout, child.stderr]) {
-    readline.createInterface({ input: stream }).on("line", (line) =>
-      console.log(paint(line)),
-    );
+    readline
+      .createInterface({ input: stream })
+      .on("line", (line) => console.log(paint(line)));
   }
 }
 

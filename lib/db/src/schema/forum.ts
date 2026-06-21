@@ -19,8 +19,13 @@ export const forumPostsTable = pgTable("forum_posts", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const insertForumThreadSchema = createInsertSchema(forumThreadsTable).omit({ id: true, createdAt: true });
-export const insertForumPostSchema = createInsertSchema(forumPostsTable).omit({ id: true, createdAt: true });
+export const insertForumThreadSchema = createInsertSchema(
+  forumThreadsTable,
+).omit({ id: true, createdAt: true });
+export const insertForumPostSchema = createInsertSchema(forumPostsTable).omit({
+  id: true,
+  createdAt: true,
+});
 export type InsertForumThread = z.infer<typeof insertForumThreadSchema>;
 export type ForumThread = typeof forumThreadsTable.$inferSelect;
 export type ForumPost = typeof forumPostsTable.$inferSelect;

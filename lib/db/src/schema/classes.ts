@@ -12,6 +12,9 @@ export const classesTable = pgTable("classes", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const insertClassSchema = createInsertSchema(classesTable).omit({ id: true, createdAt: true });
+export const insertClassSchema = createInsertSchema(classesTable).omit({
+  id: true,
+  createdAt: true,
+});
 export type InsertClass = z.infer<typeof insertClassSchema>;
 export type Class = typeof classesTable.$inferSelect;

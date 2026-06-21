@@ -3,13 +3,24 @@ import { db, materialsTable, subjectsTable, classesTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireAuth, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
-import { CreateMaterialBody, ListMaterialsQueryParams } from "@workspace/api-zod";
+import {
+  CreateMaterialBody,
+  ListMaterialsQueryParams,
+} from "@workspace/api-zod";
 
 const router = Router();
 
 const enrichMaterial = async (m: any) => {
-  const subjects = await db.select().from(subjectsTable).where(eq(subjectsTable.id, m.subjectId)).limit(1);
-  const classes = await db.select().from(classesTable).where(eq(classesTable.id, m.classId)).limit(1);
+  const subjects = await db
+    .select()
+    .from(subjectsTable)
+    .where(eq(subjectsTable.id, m.subjectId))
+    .limit(1);
+  const classes = await db
+    .select()
+    .from(classesTable)
+    .where(eq(classesTable.id, m.classId))
+    .limit(1);
   return {
     ...m,
     subjectName: subjects[0]?.name ?? "Unknown",
@@ -24,13 +35,19 @@ router.get("/", requireAuth, async (req: any, res: any) => {
     const filters: any[] = [];
 
     if (parsed.success) {
-      if (parsed.data.classId) filters.push(eq(materialsTable.classId, parsed.data.classId));
-      if (parsed.data.subjectId) filters.push(eq(materialsTable.subjectId, parsed.data.subjectId));
+      if (parsed.data.classId)
+        filters.push(eq(materialsTable.classId, parsed.data.classId));
+      if (parsed.data.subjectId)
+        filters.push(eq(materialsTable.subjectId, parsed.data.subjectId));
     }
 
-    const materials = filters.length > 0
-      ? await db.select().from(materialsTable).where(and(...filters))
-      : await db.select().from(materialsTable);
+    const materials =
+      filters.length > 0
+        ? await db
+            .select()
+            .from(materialsTable)
+            .where(and(...filters))
+        : await db.select().from(materialsTable);
 
     const enriched = await Promise.all(materials.map(enrichMaterial));
     res.json(enriched);
@@ -45,12 +62,16 @@ router.post("/", requireAuth, async (req: any, res: any) => {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);
     const parsed = CreateMaterialBody.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ error: "Invalid input" });
+    if (!parsed.success)
+      return res.status(400).json({ error: "Invalid input" });
 
-    const [material] = await db.insert(materialsTable).values({
-      ...parsed.data,
-      uploadedById: user.id,
-    }).returning();
+    const [material] = await db
+      .insert(materialsTable)
+      .values({
+        ...parsed.data,
+        uploadedById: user.id,
+      })
+      .returning();
 
     res.status(201).json(await enrichMaterial(material));
   } catch (err) {

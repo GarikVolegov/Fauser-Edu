@@ -13,6 +13,8 @@ export const justificationsTable = pgTable("justifications", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const insertJustificationSchema = createInsertSchema(justificationsTable).omit({ id: true, createdAt: true, reviewedAt: true, reviewedBy: true });
+export const insertJustificationSchema = createInsertSchema(
+  justificationsTable,
+).omit({ id: true, createdAt: true, reviewedAt: true, reviewedBy: true });
 export type InsertJustification = z.infer<typeof insertJustificationSchema>;
 export type Justification = typeof justificationsTable.$inferSelect;

@@ -16,17 +16,29 @@ export const requireAuth = (req: any, res: any, next: any) => {
   next();
 };
 
-export const getOrCreateUser = async (clerkId: string, email?: string, firstName?: string, lastName?: string) => {
-  const existing = await db.select().from(usersTable).where(eq(usersTable.clerkId, clerkId)).limit(1);
+export const getOrCreateUser = async (
+  clerkId: string,
+  email?: string,
+  firstName?: string,
+  lastName?: string,
+) => {
+  const existing = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.clerkId, clerkId))
+    .limit(1);
   if (existing.length > 0) return existing[0];
 
-  const [newUser] = await db.insert(usersTable).values({
-    clerkId,
-    email: email ?? "",
-    firstName: firstName ?? "",
-    lastName: lastName ?? "",
-    role: "student",
-  }).returning();
+  const [newUser] = await db
+    .insert(usersTable)
+    .values({
+      clerkId,
+      email: email ?? "",
+      firstName: firstName ?? "",
+      lastName: lastName ?? "",
+      role: "student",
+    })
+    .returning();
   return newUser;
 };
 

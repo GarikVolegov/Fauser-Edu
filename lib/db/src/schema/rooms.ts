@@ -1,4 +1,11 @@
-import { pgTable, serial, integer, text, date, timestamp } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  serial,
+  integer,
+  text,
+  date,
+  timestamp,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -22,8 +29,13 @@ export const roomBookingsTable = pgTable("room_bookings", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const insertRoomSchema = createInsertSchema(roomsTable).omit({ id: true, createdAt: true });
-export const insertRoomBookingSchema = createInsertSchema(roomBookingsTable).omit({ id: true, createdAt: true });
+export const insertRoomSchema = createInsertSchema(roomsTable).omit({
+  id: true,
+  createdAt: true,
+});
+export const insertRoomBookingSchema = createInsertSchema(
+  roomBookingsTable,
+).omit({ id: true, createdAt: true });
 export type InsertRoom = z.infer<typeof insertRoomSchema>;
 export type Room = typeof roomsTable.$inferSelect;
 export type RoomBooking = typeof roomBookingsTable.$inferSelect;

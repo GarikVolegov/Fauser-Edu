@@ -7,12 +7,24 @@ import { getAuth } from "@clerk/express";
 const router = Router();
 
 async function enrichNote(n: typeof behaviorNotesTable.$inferSelect) {
-  const [student] = await db.select().from(usersTable).where(eq(usersTable.id, n.studentId)).limit(1);
-  const [teacher] = await db.select().from(usersTable).where(eq(usersTable.id, n.teacherId)).limit(1);
+  const [student] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, n.studentId))
+    .limit(1);
+  const [teacher] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, n.teacherId))
+    .limit(1);
   return {
     ...n,
-    studentName: student ? `${student.firstName} ${student.lastName}` : "Unknown",
-    teacherName: teacher ? `${teacher.firstName} ${teacher.lastName}` : "Unknown",
+    studentName: student
+      ? `${student.firstName} ${student.lastName}`
+      : "Unknown",
+    teacherName: teacher
+      ? `${teacher.firstName} ${teacher.lastName}`
+      : "Unknown",
     createdAt: n.createdAt.toISOString(),
   };
 }
@@ -24,14 +36,23 @@ router.get("/", requireAuth, async (req: any, res: any) => {
     const filters: any[] = [];
 
     if (req.query.studentId) {
-      filters.push(eq(behaviorNotesTable.studentId, parseInt(req.query.studentId as string)));
+      filters.push(
+        eq(
+          behaviorNotesTable.studentId,
+          parseInt(req.query.studentId as string),
+        ),
+      );
     } else if (user.role === "student") {
       filters.push(eq(behaviorNotesTable.studentId, user.id));
     }
 
-    const records = filters.length > 0
-      ? await db.select().from(behaviorNotesTable).where(and(...filters))
-      : await db.select().from(behaviorNotesTable);
+    const records =
+      filters.length > 0
+        ? await db
+            .select()
+            .from(behaviorNotesTable)
+            .where(and(...filters))
+        : await db.select().from(behaviorNotesTable);
 
     res.json(await Promise.all(records.map(enrichNote)));
   } catch (err) {

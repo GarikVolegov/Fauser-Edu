@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { db, appointmentsTable, usersTable, notificationsTable } from "@workspace/db";
+import {
+  db,
+  appointmentsTable,
+  usersTable,
+  notificationsTable,
+} from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireAuth, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
@@ -7,12 +12,24 @@ import { getAuth } from "@clerk/express";
 const router = Router();
 
 async function enrichAppointment(a: typeof appointmentsTable.$inferSelect) {
-  const [teacher] = await db.select().from(usersTable).where(eq(usersTable.id, a.teacherId)).limit(1);
-  const [student] = await db.select().from(usersTable).where(eq(usersTable.id, a.studentId)).limit(1);
+  const [teacher] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, a.teacherId))
+    .limit(1);
+  const [student] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, a.studentId))
+    .limit(1);
   return {
     ...a,
-    teacherName: teacher ? `${teacher.firstName} ${teacher.lastName}` : "Unknown",
-    studentName: student ? `${student.firstName} ${student.lastName}` : "Unknown",
+    teacherName: teacher
+      ? `${teacher.firstName} ${teacher.lastName}`
+      : "Unknown",
+    studentName: student
+      ? `${student.firstName} ${student.lastName}`
+      : "Unknown",
     createdAt: a.createdAt.toISOString(),
   };
 }
@@ -23,18 +40,37 @@ router.get("/", requireAuth, async (req: any, res: any) => {
     const user = await getOrCreateUser(auth.userId!);
     const filters: any[] = [];
 
-    if (req.query.teacherId) filters.push(eq(appointmentsTable.teacherId, parseInt(req.query.teacherId as string)));
-    if (req.query.studentId) filters.push(eq(appointmentsTable.studentId, parseInt(req.query.studentId as string)));
-    if (req.query.date) filters.push(eq(appointmentsTable.date, req.query.date as string));
+    if (req.query.teacherId)
+      filters.push(
+        eq(
+          appointmentsTable.teacherId,
+          parseInt(req.query.teacherId as string),
+        ),
+      );
+    if (req.query.studentId)
+      filters.push(
+        eq(
+          appointmentsTable.studentId,
+          parseInt(req.query.studentId as string),
+        ),
+      );
+    if (req.query.date)
+      filters.push(eq(appointmentsTable.date, req.query.date as string));
 
     if (filters.length === 0) {
-      if (user.role === "student") filters.push(eq(appointmentsTable.studentId, user.id));
-      else if (user.role === "teacher") filters.push(eq(appointmentsTable.teacherId, user.id));
+      if (user.role === "student")
+        filters.push(eq(appointmentsTable.studentId, user.id));
+      else if (user.role === "teacher")
+        filters.push(eq(appointmentsTable.teacherId, user.id));
     }
 
-    const records = filters.length > 0
-      ? await db.select().from(appointmentsTable).where(and(...filters))
-      : await db.select().from(appointmentsTable);
+    const records =
+      filters.length > 0
+        ? await db
+            .select()
+            .from(appointmentsTable)
+            .where(and(...filters))
+        : await db.select().from(appointmentsTable);
 
     res.json(await Promise.all(records.map(enrichAppointment)));
   } catch (err) {
@@ -53,11 +89,13 @@ router.post("/", requireAuth, async (req: any, res: any) => {
     const conflict = await db
       .select()
       .from(appointmentsTable)
-      .where(and(
-        eq(appointmentsTable.teacherId, teacherId),
-        eq(appointmentsTable.date, date),
-        eq(appointmentsTable.timeSlot, timeSlot),
-      ))
+      .where(
+        and(
+          eq(appointmentsTable.teacherId, teacherId),
+          eq(appointmentsTable.date, date),
+          eq(appointmentsTable.timeSlot, timeSlot),
+        ),
+      )
       .limit(1);
 
     if (conflict.length > 0 && conflict[0].status !== "cancelled") {
@@ -66,7 +104,14 @@ router.post("/", requireAuth, async (req: any, res: any) => {
 
     const [record] = await db
       .insert(appointmentsTable)
-      .values({ teacherId, studentId, date, timeSlot, notes, status: "requested" })
+      .values({
+        teacherId,
+        studentId,
+        date,
+        timeSlot,
+        notes,
+        status: "requested",
+      })
       .returning();
 
     const enriched = await enrichAppointment(record);
@@ -93,7 +138,9 @@ router.patch("/:id", requireAuth, async (req: any, res: any) => {
     const { status } = req.body;
 
     if (!["confirmed", "cancelled"].includes(status)) {
-      return res.status(400).json({ error: "Status must be confirmed or cancelled" });
+      return res
+        .status(400)
+        .json({ error: "Status must be confirmed or cancelled" });
     }
 
     const [record] = await db
@@ -104,10 +151,12 @@ router.patch("/:id", requireAuth, async (req: any, res: any) => {
 
     const enriched = await enrichAppointment(record);
 
-    const notifTitle = status === "confirmed" ? "Colloquio confermato" : "Colloquio annullato";
-    const notifMessage = status === "confirmed"
-      ? `Il colloquio con ${enriched.teacherName} per ${record.date} alle ${record.timeSlot} è stato confermato`
-      : `Il colloquio con ${enriched.teacherName} per ${record.date} alle ${record.timeSlot} è stato annullato`;
+    const notifTitle =
+      status === "confirmed" ? "Colloquio confermato" : "Colloquio annullato";
+    const notifMessage =
+      status === "confirmed"
+        ? `Il colloquio con ${enriched.teacherName} per ${record.date} alle ${record.timeSlot} è stato confermato`
+        : `Il colloquio con ${enriched.teacherName} per ${record.date} alle ${record.timeSlot} è stato annullato`;
 
     await db.insert(notificationsTable).values({
       userId: record.studentId,

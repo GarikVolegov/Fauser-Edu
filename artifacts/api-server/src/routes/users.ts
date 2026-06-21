@@ -24,7 +24,8 @@ router.get("/me", requireAuth, async (req: any, res: any) => {
 router.patch("/me", requireAuth, async (req: any, res: any) => {
   try {
     const parsed = UpdateMeBody.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ error: "Invalid input" });
+    if (!parsed.success)
+      return res.status(400).json({ error: "Invalid input" });
 
     const [updated] = await db
       .update(usersTable)
@@ -50,11 +51,17 @@ router.get("/", requireAuth, async (req: any, res: any) => {
       filters.push(eq(usersTable.classId, parsed.data.classId));
     }
 
-    const users = filters.length > 0
-      ? await db.select().from(usersTable).where(and(...filters))
-      : await db.select().from(usersTable);
+    const users =
+      filters.length > 0
+        ? await db
+            .select()
+            .from(usersTable)
+            .where(and(...filters))
+        : await db.select().from(usersTable);
 
-    res.json(users.map(u => ({ ...u, createdAt: u.createdAt.toISOString() })));
+    res.json(
+      users.map((u) => ({ ...u, createdAt: u.createdAt.toISOString() })),
+    );
   } catch (err) {
     req.log.error({ err }, "Error listing users");
     res.status(500).json({ error: "Internal server error" });

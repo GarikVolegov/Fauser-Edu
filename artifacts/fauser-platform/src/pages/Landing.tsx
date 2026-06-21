@@ -3,13 +3,43 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  ArrowRight, ChevronDown, Laptop, Truck, Plane,
-  Building2, Award, BookOpen, MapPin, Phone, Mail,
-  CheckCircle, Clock, Briefcase, Star, Globe,
-  Cpu, Network, Server, Layers, Anchor, BarChart3, Wrench,
-  Zap, Shield, CalendarDays, ClipboardList, Menu, X,
-  GraduationCap, ChevronRight, Plus, Minus, TrendingUp,
-  FileText, Bell, MessageSquare,
+  ArrowRight,
+  ChevronDown,
+  Laptop,
+  Truck,
+  Plane,
+  Building2,
+  Award,
+  BookOpen,
+  MapPin,
+  Phone,
+  Mail,
+  CheckCircle,
+  Clock,
+  Briefcase,
+  Star,
+  Globe,
+  Cpu,
+  Network,
+  Server,
+  Layers,
+  Anchor,
+  BarChart3,
+  Wrench,
+  Zap,
+  Shield,
+  CalendarDays,
+  ClipboardList,
+  Menu,
+  X,
+  GraduationCap,
+  ChevronRight,
+  Plus,
+  Minus,
+  TrendingUp,
+  FileText,
+  Bell,
+  MessageSquare,
 } from "lucide-react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 
@@ -30,7 +60,13 @@ const fadeUpVariants = {
 };
 
 /* ─── ANIMATED COUNTER ────────────────────────────────────────────────── */
-function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: string }) {
+function AnimatedCounter({
+  target,
+  suffix = "",
+}: {
+  target: number;
+  suffix?: string;
+}) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "-50px" });
@@ -41,13 +77,20 @@ function AnimatedCounter({ target, suffix = "" }: { target: number; suffix?: str
     const step = target / 50;
     const timer = setInterval(() => {
       start += step;
-      if (start >= target) { setCount(target); clearInterval(timer); }
-      else setCount(Math.floor(start));
+      if (start >= target) {
+        setCount(target);
+        clearInterval(timer);
+      } else setCount(Math.floor(start));
     }, 30);
     return () => clearInterval(timer);
   }, [inView, target]);
 
-  return <span ref={ref}>{count}{suffix}</span>;
+  return (
+    <span ref={ref}>
+      {count}
+      {suffix}
+    </span>
+  );
 }
 
 /* ─── COMPONENT ───────────────────────────────────────────────────────── */
@@ -63,10 +106,19 @@ export default function Landing() {
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 60);
-      const sections = ["percorsi", "certificazioni", "pcto", "piattaforma", "footer"];
+      const sections = [
+        "percorsi",
+        "certificazioni",
+        "pcto",
+        "piattaforma",
+        "footer",
+      ];
       for (const id of sections.reverse()) {
         const el = document.getElementById(id);
-        if (el && window.scrollY >= el.offsetTop - 120) { setActiveSection(id); break; }
+        if (el && window.scrollY >= el.offsetTop - 120) {
+          setActiveSection(id);
+          break;
+        }
       }
     };
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -76,7 +128,9 @@ export default function Landing() {
   /* Prevent body scroll when mobile menu open */
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
+    return () => {
+      document.body.style.overflow = "";
+    };
   }, [mobileOpen]);
 
   const scrollTo = (id: string) => {
@@ -93,22 +147,38 @@ export default function Landing() {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-foreground" style={{ scrollBehavior: "smooth" }}>
+    <div
+      className="min-h-screen bg-white text-foreground"
+      style={{ scrollBehavior: "smooth" }}
+    >
       {/* ═══ STICKY NAV ═══════════════════════════════════════════════ */}
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled ? "bg-white/97 backdrop-blur-md border-b shadow-sm" : "bg-transparent"
+          scrolled
+            ? "bg-white/97 backdrop-blur-md border-b shadow-sm"
+            : "bg-transparent"
         }`}
       >
         <div className="max-w-7xl mx-auto px-5 py-4 flex items-center justify-between">
           {/* Logo */}
-          <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="flex items-center gap-3">
-            <img src={`${basePath}/logo.svg`} alt="Fauser" className="h-9 w-9" />
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="flex items-center gap-3"
+          >
+            <img
+              src={`${basePath}/logo.svg`}
+              alt="Fauser"
+              className="h-9 w-9"
+            />
             <div className="text-left">
-              <div className={`font-black text-lg leading-tight transition-colors ${scrolled ? "text-primary" : "text-white"}`}>
+              <div
+                className={`font-black text-lg leading-tight transition-colors ${scrolled ? "text-primary" : "text-white"}`}
+              >
                 ITT G.Fauser
               </div>
-              <div className={`text-xs leading-tight hidden sm:block transition-colors ${scrolled ? "text-muted-foreground" : "text-white/60"}`}>
+              <div
+                className={`text-xs leading-tight hidden sm:block transition-colors ${scrolled ? "text-muted-foreground" : "text-white/60"}`}
+              >
                 Istituto Tecnico Tecnologico · Novara
               </div>
             </div>
@@ -116,14 +186,18 @@ export default function Landing() {
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
-            {NAV_LINKS.map(n => (
+            {NAV_LINKS.map((n) => (
               <button
                 key={n.id}
                 onClick={() => scrollTo(n.id)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                   activeSection === n.id
-                    ? scrolled ? "bg-primary/10 text-primary" : "bg-white/20 text-white"
-                    : scrolled ? "text-muted-foreground hover:text-primary hover:bg-primary/5" : "text-white/70 hover:text-white hover:bg-white/10"
+                    ? scrolled
+                      ? "bg-primary/10 text-primary"
+                      : "bg-white/20 text-white"
+                    : scrolled
+                      ? "text-muted-foreground hover:text-primary hover:bg-primary/5"
+                      : "text-white/70 hover:text-white hover:bg-white/10"
                 }`}
               >
                 {n.label}
@@ -143,15 +217,22 @@ export default function Landing() {
               </Button>
             </Link>
             <Link href="/sign-up">
-              <Button size="sm" className="font-semibold rounded-full px-5 bg-amber-400 hover:bg-amber-500 text-[#0d2240]">
+              <Button
+                size="sm"
+                className="font-semibold rounded-full px-5 bg-amber-400 hover:bg-amber-500 text-[#0d2240]"
+              >
                 Iscriviti
               </Button>
             </Link>
             <button
-              onClick={() => setMobileOpen(v => !v)}
+              onClick={() => setMobileOpen((v) => !v)}
               className={`md:hidden p-2 rounded-lg transition-colors ${scrolled ? "text-primary" : "text-white"}`}
             >
-              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </button>
           </div>
         </div>
@@ -166,21 +247,26 @@ export default function Landing() {
               className="md:hidden bg-white border-t overflow-hidden"
             >
               <div className="px-5 py-4 space-y-1">
-                {NAV_LINKS.map(n => (
+                {NAV_LINKS.map((n) => (
                   <button
                     key={n.id}
                     onClick={() => scrollTo(n.id)}
                     className="w-full text-left px-4 py-3 rounded-xl text-sm font-medium text-foreground hover:bg-muted transition-colors flex items-center justify-between"
                   >
-                    {n.label} <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    {n.label}{" "}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </button>
                 ))}
                 <div className="pt-3 border-t mt-3 flex gap-3">
                   <Link href="/sign-in" className="flex-1">
-                    <Button variant="outline" className="w-full">Accedi</Button>
+                    <Button variant="outline" className="w-full">
+                      Accedi
+                    </Button>
                   </Link>
                   <Link href="/sign-up" className="flex-1">
-                    <Button className="w-full bg-amber-400 hover:bg-amber-500 text-[#0d2240] font-bold">Iscriviti</Button>
+                    <Button className="w-full bg-amber-400 hover:bg-amber-500 text-[#0d2240] font-bold">
+                      Iscriviti
+                    </Button>
                   </Link>
                 </div>
               </div>
@@ -197,7 +283,11 @@ export default function Landing() {
           <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-3xl" />
           <div
             className="absolute inset-0 opacity-[0.025]"
-            style={{ backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)", backgroundSize: "36px 36px" }}
+            style={{
+              backgroundImage:
+                "radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)",
+              backgroundSize: "36px 36px",
+            }}
           />
         </div>
 
@@ -224,7 +314,8 @@ export default function Landing() {
             transition={{ delay: 0.25, duration: 0.6 }}
             className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight text-white mb-6 leading-[1.05]"
           >
-            La scuola che forma<br />
+            La scuola che forma
+            <br />
             <span className="text-amber-400">i tecnici di domani.</span>
           </motion.h1>
 
@@ -234,8 +325,9 @@ export default function Landing() {
             transition={{ delay: 0.38, duration: 0.55 }}
             className="text-xl text-blue-100/75 mb-10 max-w-2xl mx-auto leading-relaxed"
           >
-            Tre indirizzi tecnici d'eccellenza — Informatica, Logistica, Costruzioni Aeronautiche.
-            Teoria, laboratori e stage in azienda in un percorso quinquennale.
+            Tre indirizzi tecnici d'eccellenza — Informatica, Logistica,
+            Costruzioni Aeronautiche. Teoria, laboratori e stage in azienda in
+            un percorso quinquennale.
           </motion.p>
 
           <motion.div
@@ -245,7 +337,10 @@ export default function Landing() {
             className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
           >
             <Link href="/sign-in">
-              <Button size="lg" className="bg-amber-400 hover:bg-amber-500 text-[#0d2240] font-black h-14 px-8 text-base rounded-full shadow-xl shadow-amber-400/25 gap-2 w-full sm:w-auto">
+              <Button
+                size="lg"
+                className="bg-amber-400 hover:bg-amber-500 text-[#0d2240] font-black h-14 px-8 text-base rounded-full shadow-xl shadow-amber-400/25 gap-2 w-full sm:w-auto"
+              >
                 Accedi alla piattaforma <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>
@@ -266,16 +361,35 @@ export default function Landing() {
             style={{ background: "rgba(255,255,255,0.05)" }}
           >
             {[
-              { raw: 1923, value: null, label: "Anno di fondazione", suffix: "" },
+              {
+                raw: 1923,
+                value: null,
+                label: "Anno di fondazione",
+                suffix: "",
+              },
               { raw: 3, value: null, label: "Indirizzi tecnici", suffix: "" },
               { raw: 900, value: "~", label: "Studenti iscritti", suffix: "" },
               { raw: 5, value: null, label: "Anni di percorso", suffix: "" },
             ].map((s, i) => (
-              <motion.div key={i} variants={itemVariants} className="px-6 py-5 text-center border-r border-white/5 last:border-r-0">
+              <motion.div
+                key={i}
+                variants={itemVariants}
+                className="px-6 py-5 text-center border-r border-white/5 last:border-r-0"
+              >
                 <div className="text-3xl font-black text-amber-400">
-                  {s.value}{i === 0 ? "1923" : <AnimatedCounter target={s.raw} suffix={i === 3 ? " anni" : ""} />}
+                  {s.value}
+                  {i === 0 ? (
+                    "1923"
+                  ) : (
+                    <AnimatedCounter
+                      target={s.raw}
+                      suffix={i === 3 ? " anni" : ""}
+                    />
+                  )}
                 </div>
-                <div className="text-xs text-blue-200/50 mt-1 uppercase tracking-wider">{s.label}</div>
+                <div className="text-xs text-blue-200/50 mt-1 uppercase tracking-wider">
+                  {s.label}
+                </div>
               </motion.div>
             ))}
           </motion.div>
@@ -288,8 +402,13 @@ export default function Landing() {
           transition={{ delay: 1.3 }}
           className="absolute bottom-8 left-1/2 -translate-x-1/2"
         >
-          <button onClick={() => scrollTo("percorsi")} className="flex flex-col items-center gap-2 text-white/30 hover:text-white/60 transition-colors">
-            <span className="text-[10px] uppercase tracking-[0.2em]">Scorri</span>
+          <button
+            onClick={() => scrollTo("percorsi")}
+            className="flex flex-col items-center gap-2 text-white/30 hover:text-white/60 transition-colors"
+          >
+            <span className="text-[10px] uppercase tracking-[0.2em]">
+              Scorri
+            </span>
             <ChevronDown className="h-5 w-5 animate-bounce" />
           </button>
         </motion.div>
@@ -305,11 +424,19 @@ export default function Landing() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <Badge variant="outline" className="mb-4 text-primary border-primary/30 bg-primary/5 px-3 py-1">Offerta formativa</Badge>
-            <h2 className="text-4xl lg:text-5xl font-black mb-4 text-primary">I tre percorsi quinquennali</h2>
+            <Badge
+              variant="outline"
+              className="mb-4 text-primary border-primary/30 bg-primary/5 px-3 py-1"
+            >
+              Offerta formativa
+            </Badge>
+            <h2 className="text-4xl lg:text-5xl font-black mb-4 text-primary">
+              I tre percorsi quinquennali
+            </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto text-lg leading-relaxed">
-              Ogni indirizzo ha laboratori dedicati, docenti specializzati e percorsi di stage in aziende reali.
-              Scegli quello più vicino alla tua passione.
+              Ogni indirizzo ha laboratori dedicati, docenti specializzati e
+              percorsi di stage in aziende reali. Scegli quello più vicino alla
+              tua passione.
             </p>
           </motion.div>
 
@@ -326,19 +453,30 @@ export default function Landing() {
                 }`}
                 style={
                   activePercorso === i
-                    ? { backgroundColor: p.bgLight, borderColor: p.color, color: p.color }
+                    ? {
+                        backgroundColor: p.bgLight,
+                        borderColor: p.color,
+                        color: p.color,
+                      }
                     : {}
                 }
               >
                 <div
                   className="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors"
-                  style={{ backgroundColor: activePercorso === i ? p.color : "#e5e7eb" }}
+                  style={{
+                    backgroundColor: activePercorso === i ? p.color : "#e5e7eb",
+                  }}
                 >
-                  <p.icon className="h-5 w-5" style={{ color: activePercorso === i ? "#fff" : "#6b7280" }} />
+                  <p.icon
+                    className="h-5 w-5"
+                    style={{ color: activePercorso === i ? "#fff" : "#6b7280" }}
+                  />
                 </div>
                 <div>
                   <div className="font-bold">{p.name}</div>
-                  <div className="text-xs font-normal opacity-70">{p.tagline}</div>
+                  <div className="text-xs font-normal opacity-70">
+                    {p.tagline}
+                  </div>
                 </div>
               </button>
             ))}
@@ -361,30 +499,50 @@ export default function Landing() {
                     {/* Hero card */}
                     <div
                       className="p-8 rounded-3xl text-white"
-                      style={{ background: `linear-gradient(135deg, ${p.color} 0%, ${p.colorDark} 100%)` }}
+                      style={{
+                        background: `linear-gradient(135deg, ${p.color} 0%, ${p.colorDark} 100%)`,
+                      }}
                     >
                       <div className="flex items-center gap-4 mb-5">
                         <div className="h-16 w-16 bg-white/20 rounded-2xl flex items-center justify-center flex-shrink-0">
                           <p.icon className="h-8 w-8 text-white" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-black leading-tight">{p.name}</h3>
-                          <p className="text-white/65 text-sm mt-0.5">{p.subtitle}</p>
+                          <h3 className="text-xl font-black leading-tight">
+                            {p.name}
+                          </h3>
+                          <p className="text-white/65 text-sm mt-0.5">
+                            {p.subtitle}
+                          </p>
                         </div>
                       </div>
-                      <p className="text-white/85 leading-relaxed">{p.description}</p>
+                      <p className="text-white/85 leading-relaxed">
+                        {p.description}
+                      </p>
                     </div>
 
                     {/* Sbocchi */}
-                    <div className="p-6 rounded-3xl border-2 bg-white" style={{ borderColor: p.color + "40" }}>
+                    <div
+                      className="p-6 rounded-3xl border-2 bg-white"
+                      style={{ borderColor: p.color + "40" }}
+                    >
                       <h4 className="font-bold text-primary mb-4 flex items-center gap-2 text-sm uppercase tracking-wide">
-                        <Briefcase className="h-4 w-4" style={{ color: p.color }} />
+                        <Briefcase
+                          className="h-4 w-4"
+                          style={{ color: p.color }}
+                        />
                         Sbocchi professionali & universitari
                       </h4>
                       <div className="grid grid-cols-2 gap-y-2 gap-x-3">
                         {p.careers.map((c, ci) => (
-                          <div key={ci} className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <CheckCircle className="h-4 w-4 flex-shrink-0" style={{ color: p.color }} />
+                          <div
+                            key={ci}
+                            className="flex items-center gap-2 text-sm text-muted-foreground"
+                          >
+                            <CheckCircle
+                              className="h-4 w-4 flex-shrink-0"
+                              style={{ color: p.color }}
+                            />
                             {c}
                           </div>
                         ))}
@@ -392,7 +550,10 @@ export default function Landing() {
                     </div>
 
                     {/* Certificazioni */}
-                    <div className="p-6 rounded-3xl border-2 bg-white" style={{ borderColor: p.color + "40" }}>
+                    <div
+                      className="p-6 rounded-3xl border-2 bg-white"
+                      style={{ borderColor: p.color + "40" }}
+                    >
                       <h4 className="font-bold text-primary mb-3 flex items-center gap-2 text-sm uppercase tracking-wide">
                         <Award className="h-4 w-4" style={{ color: p.color }} />
                         Certificazioni conseguibili
@@ -402,7 +563,11 @@ export default function Landing() {
                           <span
                             key={ci}
                             className="text-xs font-semibold px-3 py-1.5 rounded-full border"
-                            style={{ borderColor: p.color + "50", backgroundColor: p.bgLight, color: p.color }}
+                            style={{
+                              borderColor: p.color + "50",
+                              backgroundColor: p.bgLight,
+                              color: p.color,
+                            }}
                           >
                             {c}
                           </span>
@@ -416,7 +581,10 @@ export default function Landing() {
                     {/* Piano di studi */}
                     <div className="p-6 rounded-3xl border bg-white shadow-sm">
                       <h4 className="font-bold text-primary mb-5 flex items-center gap-2 text-sm uppercase tracking-wide">
-                        <BookOpen className="h-4 w-4" style={{ color: p.color }} />
+                        <BookOpen
+                          className="h-4 w-4"
+                          style={{ color: p.color }}
+                        />
                         Piano di studi anno per anno
                       </h4>
                       <div className="space-y-4">
@@ -424,7 +592,9 @@ export default function Landing() {
                           <div key={ai} className="flex gap-3 items-start">
                             <div
                               className="flex-shrink-0 h-7 w-7 rounded-full flex items-center justify-center text-xs font-black text-white mt-0.5"
-                              style={{ backgroundColor: ai < 2 ? "#94a3b8" : p.color }}
+                              style={{
+                                backgroundColor: ai < 2 ? "#94a3b8" : p.color,
+                              }}
                             >
                               {ai + 1}
                             </div>
@@ -432,7 +602,9 @@ export default function Landing() {
                               <div className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-1.5">
                                 {anno.year}
                                 {ai < 2 && (
-                                  <span className="ml-2 normal-case font-normal text-muted-foreground/60">(materie comuni a tutti gli indirizzi)</span>
+                                  <span className="ml-2 normal-case font-normal text-muted-foreground/60">
+                                    (materie comuni a tutti gli indirizzi)
+                                  </span>
                                 )}
                               </div>
                               <div className="flex flex-wrap gap-1">
@@ -440,7 +612,11 @@ export default function Landing() {
                                   <span
                                     key={si}
                                     className={`text-xs px-2 py-0.5 rounded-md ${ai < 2 ? "bg-muted text-muted-foreground" : "text-white"}`}
-                                    style={ai >= 2 ? { backgroundColor: p.color + "cc" } : {}}
+                                    style={
+                                      ai >= 2
+                                        ? { backgroundColor: p.color + "cc" }
+                                        : {}
+                                    }
                                   >
                                     {s}
                                   </span>
@@ -455,16 +631,26 @@ export default function Landing() {
                     {/* Highlight cards */}
                     <div className="grid grid-cols-2 gap-3">
                       {p.highlights.map((h, hi) => (
-                        <div key={hi} className="p-4 rounded-2xl border bg-white shadow-sm hover:shadow-md transition-shadow">
-                          <h.icon className="h-6 w-6 mb-2" style={{ color: p.color }} />
-                          <div className="text-sm font-bold text-primary">{h.title}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5 leading-snug">{h.desc}</div>
+                        <div
+                          key={hi}
+                          className="p-4 rounded-2xl border bg-white shadow-sm hover:shadow-md transition-shadow"
+                        >
+                          <h.icon
+                            className="h-6 w-6 mb-2"
+                            style={{ color: p.color }}
+                          />
+                          <div className="text-sm font-bold text-primary">
+                            {h.title}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-0.5 leading-snug">
+                            {h.desc}
+                          </div>
                         </div>
                       ))}
                     </div>
                   </div>
                 </motion.div>
-              )
+              ),
             )}
           </AnimatePresence>
         </div>
@@ -480,11 +666,19 @@ export default function Landing() {
             viewport={{ once: true }}
             className="text-center mb-14"
           >
-            <Badge variant="outline" className="mb-4 text-primary border-primary/30 bg-primary/5 px-3 py-1">Partner ufficiali</Badge>
-            <h2 className="text-4xl font-black mb-4 text-primary">Certificazioni internazionali</h2>
+            <Badge
+              variant="outline"
+              className="mb-4 text-primary border-primary/30 bg-primary/5 px-3 py-1"
+            >
+              Partner ufficiali
+            </Badge>
+            <h2 className="text-4xl font-black mb-4 text-primary">
+              Certificazioni internazionali
+            </h2>
             <p className="text-muted-foreground max-w-xl mx-auto text-lg">
-              Consegui certificazioni riconosciute globalmente durante il tuo percorso scolastico,
-              spendibili subito nel curriculum e all'università.
+              Consegui certificazioni riconosciute globalmente durante il tuo
+              percorso scolastico, spendibili subito nel curriculum e
+              all'università.
             </p>
           </motion.div>
 
@@ -508,8 +702,12 @@ export default function Landing() {
                   {c.abbrev}
                 </div>
                 <div className="min-w-0">
-                  <div className="font-bold text-primary text-base mb-1">{c.name}</div>
-                  <div className="text-sm text-muted-foreground leading-relaxed mb-2">{c.desc}</div>
+                  <div className="font-bold text-primary text-base mb-1">
+                    {c.name}
+                  </div>
+                  <div className="text-sm text-muted-foreground leading-relaxed mb-2">
+                    {c.desc}
+                  </div>
                   <span
                     className="text-xs px-2 py-0.5 rounded-full font-semibold"
                     style={{ backgroundColor: c.color + "18", color: c.color }}
@@ -533,12 +731,26 @@ export default function Landing() {
               whileInView="visible"
               viewport={{ once: true }}
             >
-              <Badge variant="outline" className="mb-4 text-primary border-primary/30 bg-primary/5 px-3 py-1">P.C.T.O.</Badge>
+              <Badge
+                variant="outline"
+                className="mb-4 text-primary border-primary/30 bg-primary/5 px-3 py-1"
+              >
+                P.C.T.O.
+              </Badge>
               <h2 className="text-4xl font-black mb-5 text-primary leading-tight">
-                Stage in azienda<br />già dal terzo anno
+                Stage in azienda
+                <br />
+                già dal terzo anno
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-                I <strong>Percorsi per le Competenze Trasversali e per l'Orientamento</strong> portano ogni studente in aziende reali del territorio per almeno <strong>210 ore nel triennio</strong>. Un'esperienza che integra la teoria con la pratica professionale e viene valutata all'esame di maturità.
+                I{" "}
+                <strong>
+                  Percorsi per le Competenze Trasversali e per l'Orientamento
+                </strong>{" "}
+                portano ogni studente in aziende reali del territorio per almeno{" "}
+                <strong>210 ore nel triennio</strong>. Un'esperienza che integra
+                la teoria con la pratica professionale e viene valutata
+                all'esame di maturità.
               </p>
               <div className="space-y-4">
                 {PCTO_POINTS.map((pt, i) => (
@@ -547,8 +759,12 @@ export default function Landing() {
                       <pt.icon className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <div className="font-semibold text-primary">{pt.title}</div>
-                      <div className="text-sm text-muted-foreground mt-0.5 leading-relaxed">{pt.desc}</div>
+                      <div className="font-semibold text-primary">
+                        {pt.title}
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-0.5 leading-relaxed">
+                        {pt.desc}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -569,10 +785,15 @@ export default function Landing() {
                   className="p-6 rounded-2xl border bg-white shadow-sm hover:shadow-md transition-all text-center"
                 >
                   <div className="text-4xl font-black text-primary mb-1">
-                    {s.prefix}<AnimatedCounter target={s.num} suffix={s.suffix} />
+                    {s.prefix}
+                    <AnimatedCounter target={s.num} suffix={s.suffix} />
                   </div>
-                  <div className="text-sm font-semibold text-foreground">{s.label}</div>
-                  <div className="text-xs text-muted-foreground mt-1">{s.sub}</div>
+                  <div className="text-sm font-semibold text-foreground">
+                    {s.label}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {s.sub}
+                  </div>
                 </motion.div>
               ))}
             </motion.div>
@@ -590,11 +811,15 @@ export default function Landing() {
             viewport={{ once: true }}
             className="text-center mb-14"
           >
-            <Badge className="mb-4 bg-amber-400/20 text-amber-300 border-amber-400/30 px-3 py-1">Piattaforma digitale</Badge>
-            <h2 className="text-4xl font-black mb-4">Tutto in un unico posto</h2>
+            <Badge className="mb-4 bg-amber-400/20 text-amber-300 border-amber-400/30 px-3 py-1">
+              Piattaforma digitale
+            </Badge>
+            <h2 className="text-4xl font-black mb-4">
+              Tutto in un unico posto
+            </h2>
             <p className="text-blue-200/60 max-w-2xl mx-auto text-lg">
-              Inclusa per tutti gli studenti e i docenti iscritti.
-              Un ecosistema completo per la vita scolastica quotidiana.
+              Inclusa per tutti gli studenti e i docenti iscritti. Un ecosistema
+              completo per la vita scolastica quotidiana.
             </p>
           </motion.div>
 
@@ -615,7 +840,9 @@ export default function Landing() {
                   <f.icon className="h-5 w-5 text-amber-400" />
                 </div>
                 <h3 className="font-bold text-white mb-1.5">{f.title}</h3>
-                <p className="text-sm text-blue-200/55 leading-relaxed">{f.desc}</p>
+                <p className="text-sm text-blue-200/55 leading-relaxed">
+                  {f.desc}
+                </p>
               </motion.div>
             ))}
           </motion.div>
@@ -628,7 +855,10 @@ export default function Landing() {
             className="text-center"
           >
             <Link href="/sign-up">
-              <Button size="lg" className="bg-amber-400 hover:bg-amber-500 text-[#0d2240] font-black h-14 px-10 text-base rounded-full shadow-xl shadow-amber-400/20 gap-2">
+              <Button
+                size="lg"
+                className="bg-amber-400 hover:bg-amber-500 text-[#0d2240] font-black h-14 px-10 text-base rounded-full shadow-xl shadow-amber-400/20 gap-2"
+              >
                 Registrati gratis <ArrowRight className="h-5 w-5" />
               </Button>
             </Link>
@@ -646,10 +876,18 @@ export default function Landing() {
             viewport={{ once: true }}
             className="text-center mb-14"
           >
-            <Badge variant="outline" className="mb-4 text-primary border-primary/30 bg-primary/5 px-3 py-1">Domande frequenti</Badge>
-            <h2 className="text-4xl font-black mb-4 text-primary">Hai dubbi? Ecco le risposte</h2>
+            <Badge
+              variant="outline"
+              className="mb-4 text-primary border-primary/30 bg-primary/5 px-3 py-1"
+            >
+              Domande frequenti
+            </Badge>
+            <h2 className="text-4xl font-black mb-4 text-primary">
+              Hai dubbi? Ecco le risposte
+            </h2>
             <p className="text-muted-foreground text-lg">
-              Le domande più comuni da genitori e studenti che stanno scegliendo il Fauser.
+              Le domande più comuni da genitori e studenti che stanno scegliendo
+              il Fauser.
             </p>
           </motion.div>
 
@@ -666,11 +904,15 @@ export default function Landing() {
                   onClick={() => setActiveFaq(activeFaq === i ? null : i)}
                   className="w-full text-left p-5 rounded-2xl bg-white border hover:border-primary/30 transition-all shadow-sm flex items-start justify-between gap-4"
                 >
-                  <span className="font-semibold text-primary text-base leading-snug">{faq.q}</span>
+                  <span className="font-semibold text-primary text-base leading-snug">
+                    {faq.q}
+                  </span>
                   <span className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                    {activeFaq === i
-                      ? <Minus className="h-3.5 w-3.5 text-primary" />
-                      : <Plus className="h-3.5 w-3.5 text-primary" />}
+                    {activeFaq === i ? (
+                      <Minus className="h-3.5 w-3.5 text-primary" />
+                    ) : (
+                      <Plus className="h-3.5 w-3.5 text-primary" />
+                    )}
                   </span>
                 </button>
                 <AnimatePresence>
@@ -708,15 +950,24 @@ export default function Landing() {
           className="max-w-4xl mx-auto px-6 text-center relative z-10"
         >
           <div className="text-[#0d2240] font-black text-4xl lg:text-5xl mb-4">
-            Vieni a scoprirci<br />all'Open Day
+            Vieni a scoprirci
+            <br />
+            all'Open Day
           </div>
           <p className="text-[#0d2240]/70 text-lg mb-8 max-w-xl mx-auto">
-            Visita i laboratori, incontra i docenti e scopri quale percorso fa per te.
-            Le iscrizioni per il prossimo anno scolastico sono aperte.
+            Visita i laboratori, incontra i docenti e scopri quale percorso fa
+            per te. Le iscrizioni per il prossimo anno scolastico sono aperte.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="https://www.fauser.edu" target="_blank" rel="noopener noreferrer">
-              <Button size="lg" className="bg-[#0d2240] hover:bg-[#163055] text-white h-14 px-8 rounded-full font-bold gap-2 w-full sm:w-auto">
+            <a
+              href="https://www.fauser.edu"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Button
+                size="lg"
+                className="bg-[#0d2240] hover:bg-[#163055] text-white h-14 px-8 rounded-full font-bold gap-2 w-full sm:w-auto"
+              >
                 <Globe className="h-5 w-5" /> Sito ufficiale fauser.edu
               </Button>
             </a>
@@ -739,24 +990,40 @@ export default function Landing() {
             {/* Brand */}
             <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-5">
-                <img src={`${basePath}/logo.svg`} alt="Logo" className="h-10 w-10 brightness-0 invert" />
+                <img
+                  src={`${basePath}/logo.svg`}
+                  alt="Logo"
+                  className="h-10 w-10 brightness-0 invert"
+                />
                 <div>
-                  <div className="font-black text-lg leading-tight">ITT G.Fauser</div>
-                  <div className="text-xs text-blue-200/40 leading-tight">Istituto Tecnico Tecnologico "Giacomo Fauser"</div>
+                  <div className="font-black text-lg leading-tight">
+                    ITT G.Fauser
+                  </div>
+                  <div className="text-xs text-blue-200/40 leading-tight">
+                    Istituto Tecnico Tecnologico "Giacomo Fauser"
+                  </div>
                 </div>
               </div>
               <p className="text-sm text-blue-200/45 leading-relaxed max-w-xs mb-5">
-                Scuola tecnica d'eccellenza a Novara dal 1923. Formiamo tecnici nei settori dell'Informatica e Telecomunicazioni, della Logistica e delle Costruzioni Aeronautiche.
+                Scuola tecnica d'eccellenza a Novara dal 1923. Formiamo tecnici
+                nei settori dell'Informatica e Telecomunicazioni, della
+                Logistica e delle Costruzioni Aeronautiche.
               </p>
               <div className="flex items-center gap-2">
-                <span className="text-xs px-3 py-1 rounded-full border border-white/10 text-blue-200/50">NOTF040002</span>
-                <span className="text-xs px-3 py-1 rounded-full border border-white/10 text-blue-200/50">Distretto 51</span>
+                <span className="text-xs px-3 py-1 rounded-full border border-white/10 text-blue-200/50">
+                  NOTF040002
+                </span>
+                <span className="text-xs px-3 py-1 rounded-full border border-white/10 text-blue-200/50">
+                  Distretto 51
+                </span>
               </div>
             </div>
 
             {/* Contatti */}
             <div>
-              <div className="font-bold text-xs uppercase tracking-widest text-blue-200/40 mb-5">Contatti</div>
+              <div className="font-bold text-xs uppercase tracking-widest text-blue-200/40 mb-5">
+                Contatti
+              </div>
               <div className="space-y-3">
                 <a
                   href="https://maps.google.com/?q=Via+Ricci+14+Novara"
@@ -786,12 +1053,17 @@ export default function Landing() {
 
             {/* Percorsi quick links */}
             <div>
-              <div className="font-bold text-xs uppercase tracking-widest text-blue-200/40 mb-5">Percorsi</div>
+              <div className="font-bold text-xs uppercase tracking-widest text-blue-200/40 mb-5">
+                Percorsi
+              </div>
               <div className="space-y-2">
                 {PERCORSI.map((p, i) => (
                   <button
                     key={i}
-                    onClick={() => { setActivePercorso(i); scrollTo("percorsi"); }}
+                    onClick={() => {
+                      setActivePercorso(i);
+                      scrollTo("percorsi");
+                    }}
                     className="flex items-center gap-2 text-sm text-blue-100/55 hover:text-amber-400 transition-colors w-full text-left"
                   >
                     <ChevronRight className="h-3.5 w-3.5" />
@@ -803,13 +1075,15 @@ export default function Landing() {
                     onClick={() => scrollTo("certificazioni")}
                     className="flex items-center gap-2 text-sm text-blue-100/55 hover:text-amber-400 transition-colors w-full text-left"
                   >
-                    <ChevronRight className="h-3.5 w-3.5" />Certificazioni
+                    <ChevronRight className="h-3.5 w-3.5" />
+                    Certificazioni
                   </button>
                   <button
                     onClick={() => scrollTo("pcto")}
                     className="flex items-center gap-2 text-sm text-blue-100/55 hover:text-amber-400 transition-colors w-full text-left mt-2"
                   >
-                    <ChevronRight className="h-3.5 w-3.5" />Stage P.C.T.O.
+                    <ChevronRight className="h-3.5 w-3.5" />
+                    Stage P.C.T.O.
                   </button>
                 </div>
               </div>
@@ -817,7 +1091,10 @@ export default function Landing() {
           </div>
 
           <div className="border-t border-white/8 pt-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-blue-200/30">
-            <span>© {new Date().getFullYear()} Istituto Tecnico Tecnologico "G.Fauser", Novara. Tutti i diritti riservati.</span>
+            <span>
+              © {new Date().getFullYear()} Istituto Tecnico Tecnologico
+              "G.Fauser", Novara. Tutti i diritti riservati.
+            </span>
             <a
               href="https://www.fauser.edu"
               target="_blank"
@@ -847,23 +1124,95 @@ const PERCORSI = [
     description:
       "Forma tecnici capaci di progettare e sviluppare sistemi informatici, applicazioni software, reti e infrastrutture IT. Ampio spazio ai laboratori di programmazione, networking, cybersecurity e cloud computing. Uno degli indirizzi con più sbocchi lavorativi in Italia.",
     curriculum: [
-      { year: "1° anno", subjects: ["Matematica", "Italiano", "Inglese", "Scienze", "Fisica", "Chimica", "Tecnologie informatiche"] },
-      { year: "2° anno", subjects: ["Matematica", "Inglese", "Scienze applicate", "Fisica", "Tecnologie e tecniche di rappresentazione"] },
-      { year: "3° anno", subjects: ["Informatica", "Sistemi e Reti", "Tecnologie e Progettazione", "Telecomunicazioni"] },
-      { year: "4° anno", subjects: ["Informatica avanzata", "Sistemi e Reti", "T.P.S.I.T.", "Telecomunicazioni"] },
-      { year: "5° anno", subjects: ["Informatica", "Sistemi e Reti", "T.P.S.I.T.", "Gestione Progetto", "Inglese tecnico"] },
+      {
+        year: "1° anno",
+        subjects: [
+          "Matematica",
+          "Italiano",
+          "Inglese",
+          "Scienze",
+          "Fisica",
+          "Chimica",
+          "Tecnologie informatiche",
+        ],
+      },
+      {
+        year: "2° anno",
+        subjects: [
+          "Matematica",
+          "Inglese",
+          "Scienze applicate",
+          "Fisica",
+          "Tecnologie e tecniche di rappresentazione",
+        ],
+      },
+      {
+        year: "3° anno",
+        subjects: [
+          "Informatica",
+          "Sistemi e Reti",
+          "Tecnologie e Progettazione",
+          "Telecomunicazioni",
+        ],
+      },
+      {
+        year: "4° anno",
+        subjects: [
+          "Informatica avanzata",
+          "Sistemi e Reti",
+          "T.P.S.I.T.",
+          "Telecomunicazioni",
+        ],
+      },
+      {
+        year: "5° anno",
+        subjects: [
+          "Informatica",
+          "Sistemi e Reti",
+          "T.P.S.I.T.",
+          "Gestione Progetto",
+          "Inglese tecnico",
+        ],
+      },
     ],
     careers: [
-      "Sviluppatore software", "Sistemista IT / DevOps", "Web developer full-stack",
-      "Network engineer", "Cybersecurity analyst", "Data analyst",
-      "Ingegneria Informatica (università)", "IT consultant",
+      "Sviluppatore software",
+      "Sistemista IT / DevOps",
+      "Web developer full-stack",
+      "Network engineer",
+      "Cybersecurity analyst",
+      "Data analyst",
+      "Ingegneria Informatica (università)",
+      "IT consultant",
     ],
-    certs: ["ECDL / ICDL", "Cisco IT-Essentials", "Cambridge English B2", "Microsoft Office Specialist", "Google Workspace"],
+    certs: [
+      "ECDL / ICDL",
+      "Cisco IT-Essentials",
+      "Cambridge English B2",
+      "Microsoft Office Specialist",
+      "Google Workspace",
+    ],
     highlights: [
-      { icon: Cpu, title: "Programmazione", desc: "Python, Java, C#, SQL, HTML/CSS/JS" },
-      { icon: Network, title: "Networking", desc: "TCP/IP, VLAN, routing, firewall" },
-      { icon: Server, title: "Sistemi operativi", desc: "Linux, Windows Server, VM" },
-      { icon: Shield, title: "Cybersecurity", desc: "Sicurezza reti, crittografia, GDPR" },
+      {
+        icon: Cpu,
+        title: "Programmazione",
+        desc: "Python, Java, C#, SQL, HTML/CSS/JS",
+      },
+      {
+        icon: Network,
+        title: "Networking",
+        desc: "TCP/IP, VLAN, routing, firewall",
+      },
+      {
+        icon: Server,
+        title: "Sistemi operativi",
+        desc: "Linux, Windows Server, VM",
+      },
+      {
+        icon: Shield,
+        title: "Cybersecurity",
+        desc: "Sicurezza reti, crittografia, GDPR",
+      },
     ],
   },
   {
@@ -877,23 +1226,87 @@ const PERCORSI = [
     description:
       "Prepara tecnici per la gestione di reti di trasporto, magazzini e supply chain globali. Si studia l'ottimizzazione dei flussi logistici, le normative nazionali ed europee del settore e le tecnologie per la digitalizzazione della catena distributiva.",
     curriculum: [
-      { year: "1° anno", subjects: ["Matematica", "Italiano", "Inglese", "Scienze", "Fisica", "Chimica", "Tecnologie applicate"] },
-      { year: "2° anno", subjects: ["Matematica", "Inglese", "Scienze applicate", "Fisica", "Tecnologie e tecniche"] },
-      { year: "3° anno", subjects: ["Logistica", "Scienze della Navigazione", "Struttura del Mezzo", "Meccanica e Macchine", "Diritto"] },
-      { year: "4° anno", subjects: ["Logistica avanzata", "Scienze della Navigazione", "Diritto dei Trasporti", "Meccanica"] },
-      { year: "5° anno", subjects: ["Logistica integrata", "Economia dei Trasporti", "Diritto", "Scienze della Navigazione", "Inglese tecnico"] },
+      {
+        year: "1° anno",
+        subjects: [
+          "Matematica",
+          "Italiano",
+          "Inglese",
+          "Scienze",
+          "Fisica",
+          "Chimica",
+          "Tecnologie applicate",
+        ],
+      },
+      {
+        year: "2° anno",
+        subjects: [
+          "Matematica",
+          "Inglese",
+          "Scienze applicate",
+          "Fisica",
+          "Tecnologie e tecniche",
+        ],
+      },
+      {
+        year: "3° anno",
+        subjects: [
+          "Logistica",
+          "Scienze della Navigazione",
+          "Struttura del Mezzo",
+          "Meccanica e Macchine",
+          "Diritto",
+        ],
+      },
+      {
+        year: "4° anno",
+        subjects: [
+          "Logistica avanzata",
+          "Scienze della Navigazione",
+          "Diritto dei Trasporti",
+          "Meccanica",
+        ],
+      },
+      {
+        year: "5° anno",
+        subjects: [
+          "Logistica integrata",
+          "Economia dei Trasporti",
+          "Diritto",
+          "Scienze della Navigazione",
+          "Inglese tecnico",
+        ],
+      },
     ],
     careers: [
-      "Logistic manager", "Supply chain specialist", "Spedizioniere internazionale",
-      "Traffic manager", "Fleet manager", "Magazziniere senior",
-      "Consulente trasporti", "Ingegneria dei trasporti (università)",
+      "Logistic manager",
+      "Supply chain specialist",
+      "Spedizioniere internazionale",
+      "Traffic manager",
+      "Fleet manager",
+      "Magazziniere senior",
+      "Consulente trasporti",
+      "Ingegneria dei trasporti (università)",
     ],
-    certs: ["ECDL / ICDL", "Cambridge English B2", "ADR Trasporto merci pericolose", "Certificazioni FIATA"],
+    certs: [
+      "ECDL / ICDL",
+      "Cambridge English B2",
+      "ADR Trasporto merci pericolose",
+      "Certificazioni FIATA",
+    ],
     highlights: [
-      { icon: BarChart3, title: "Supply chain", desc: "Pianificazione flussi e scorte" },
+      {
+        icon: BarChart3,
+        title: "Supply chain",
+        desc: "Pianificazione flussi e scorte",
+      },
       { icon: Globe, title: "Trasporti", desc: "Terrestri, marittimi, aerei" },
       { icon: Layers, title: "Magazzino", desc: "WMS, cross-docking, picking" },
-      { icon: Anchor, title: "Normativa EU", desc: "Diritto dei trasporti europeo" },
+      {
+        icon: Anchor,
+        title: "Normativa EU",
+        desc: "Diritto dei trasporti europeo",
+      },
     ],
   },
   {
@@ -907,23 +1320,93 @@ const PERCORSI = [
     description:
       "Indirizzo unico in Piemonte. Forma tecnici specializzati nella progettazione, costruzione e manutenzione di velivoli. Grande spazio a CAD/CAM 3D con SolidWorks, simulazioni, normative EASA e competenze in avionica. Sbocchi diretti nell'industria aerospaziale.",
     curriculum: [
-      { year: "1° anno", subjects: ["Matematica", "Italiano", "Inglese", "Scienze", "Fisica", "Chimica", "Disegno tecnico"] },
-      { year: "2° anno", subjects: ["Matematica", "Inglese", "Scienze applicate", "Fisica", "Tecnologie applicate"] },
-      { year: "3° anno", subjects: ["Costruzione del Mezzo", "Meccanica e Macchine", "Navigazione Aerea", "CAD 3D SolidWorks", "Elettrotecnica"] },
-      { year: "4° anno", subjects: ["Costruzione avanzata", "Propulsione aeronautica", "Navigazione aerea", "Progettazione CAD", "Avionica"] },
-      { year: "5° anno", subjects: ["Sistemi aeronautici", "Progettazione avanzata", "Normativa EASA", "Navigazione", "Inglese aeronautico ICAO"] },
+      {
+        year: "1° anno",
+        subjects: [
+          "Matematica",
+          "Italiano",
+          "Inglese",
+          "Scienze",
+          "Fisica",
+          "Chimica",
+          "Disegno tecnico",
+        ],
+      },
+      {
+        year: "2° anno",
+        subjects: [
+          "Matematica",
+          "Inglese",
+          "Scienze applicate",
+          "Fisica",
+          "Tecnologie applicate",
+        ],
+      },
+      {
+        year: "3° anno",
+        subjects: [
+          "Costruzione del Mezzo",
+          "Meccanica e Macchine",
+          "Navigazione Aerea",
+          "CAD 3D SolidWorks",
+          "Elettrotecnica",
+        ],
+      },
+      {
+        year: "4° anno",
+        subjects: [
+          "Costruzione avanzata",
+          "Propulsione aeronautica",
+          "Navigazione aerea",
+          "Progettazione CAD",
+          "Avionica",
+        ],
+      },
+      {
+        year: "5° anno",
+        subjects: [
+          "Sistemi aeronautici",
+          "Progettazione avanzata",
+          "Normativa EASA",
+          "Navigazione",
+          "Inglese aeronautico ICAO",
+        ],
+      },
     ],
     careers: [
-      "Tecnico manutentore aeronautico", "Progettista CAD/CAM", "Operatore ENAC",
-      "Tecnico avionica", "Controllore di volo", "Operatore aeroportuale",
-      "Ingegneria Aerospaziale (università)", "Produzione aeronautica Leonardo",
+      "Tecnico manutentore aeronautico",
+      "Progettista CAD/CAM",
+      "Operatore ENAC",
+      "Tecnico avionica",
+      "Controllore di volo",
+      "Operatore aeroportuale",
+      "Ingegneria Aerospaziale (università)",
+      "Produzione aeronautica Leonardo",
     ],
-    certs: ["CSWA SolidWorks Associate", "CSWP SolidWorks Professional", "ECDL / ICDL", "Cambridge English B2", "Inglese aeronautico ICAO"],
+    certs: [
+      "CSWA SolidWorks Associate",
+      "CSWP SolidWorks Professional",
+      "ECDL / ICDL",
+      "Cambridge English B2",
+      "Inglese aeronautico ICAO",
+    ],
     highlights: [
-      { icon: Wrench, title: "Manutenzione", desc: "Strutture, motori e impianti" },
-      { icon: Layers, title: "CAD 3D", desc: "SolidWorks, modellazione e disegno" },
+      {
+        icon: Wrench,
+        title: "Manutenzione",
+        desc: "Strutture, motori e impianti",
+      },
+      {
+        icon: Layers,
+        title: "CAD 3D",
+        desc: "SolidWorks, modellazione e disegno",
+      },
       { icon: Zap, title: "Avionica", desc: "Sistemi elettronici di bordo" },
-      { icon: Globe, title: "Normativa EASA", desc: "Regolamenti UE aviazione civile" },
+      {
+        icon: Globe,
+        title: "Normativa EASA",
+        desc: "Regolamenti UE aviazione civile",
+      },
     ],
   },
 ];
@@ -974,29 +1457,105 @@ const CERTIFICAZIONI = [
 ];
 
 const PCTO_POINTS = [
-  { icon: Building2, title: "Aziende del territorio novarese", desc: "Collaborazioni attive con aziende IT, logistiche e del settore aeronautico piemontese e lombardo." },
-  { icon: Clock, title: "Minimo 210 ore nel triennio", desc: "Distribuite tra 3°, 4° e 5° anno con affiancamento quotidiano a tutor aziendali." },
-  { icon: Star, title: "Tutor scolastico dedicato", desc: "Ogni studente è seguito da un docente referente che coordina il percorso con il tutor in azienda." },
-  { icon: GraduationCap, title: "Valorizzato all'esame di Stato", desc: "L'esperienza di stage è presentata e discussa nel colloquio orale della maturità." },
+  {
+    icon: Building2,
+    title: "Aziende del territorio novarese",
+    desc: "Collaborazioni attive con aziende IT, logistiche e del settore aeronautico piemontese e lombardo.",
+  },
+  {
+    icon: Clock,
+    title: "Minimo 210 ore nel triennio",
+    desc: "Distribuite tra 3°, 4° e 5° anno con affiancamento quotidiano a tutor aziendali.",
+  },
+  {
+    icon: Star,
+    title: "Tutor scolastico dedicato",
+    desc: "Ogni studente è seguito da un docente referente che coordina il percorso con il tutor in azienda.",
+  },
+  {
+    icon: GraduationCap,
+    title: "Valorizzato all'esame di Stato",
+    desc: "L'esperienza di stage è presentata e discussa nel colloquio orale della maturità.",
+  },
 ];
 
 const PCTO_STATS = [
-  { prefix: "", num: 210, suffix: "+", label: "Ore di stage", sub: "Nel triennio (3°-5° anno)" },
-  { prefix: "~", num: 50, suffix: "", label: "Aziende partner", sub: "Attive sul territorio" },
-  { prefix: "", num: 100, suffix: "%", label: "Studenti coinvolti", sub: "Stage obbligatorio" },
-  { prefix: "", num: 3, suffix: " anni", label: "Anni di esperienza", sub: "Con tutor aziendale" },
+  {
+    prefix: "",
+    num: 210,
+    suffix: "+",
+    label: "Ore di stage",
+    sub: "Nel triennio (3°-5° anno)",
+  },
+  {
+    prefix: "~",
+    num: 50,
+    suffix: "",
+    label: "Aziende partner",
+    sub: "Attive sul territorio",
+  },
+  {
+    prefix: "",
+    num: 100,
+    suffix: "%",
+    label: "Studenti coinvolti",
+    sub: "Stage obbligatorio",
+  },
+  {
+    prefix: "",
+    num: 3,
+    suffix: " anni",
+    label: "Anni di esperienza",
+    sub: "Con tutor aziendale",
+  },
 ];
 
 const PLATFORM_FEATURES = [
-  { icon: ClipboardList, title: "Registro elettronico", desc: "Voti, presenze e note disciplinari in tempo reale per studenti e famiglie." },
-  { icon: BookOpen, title: "Classroom digitale", desc: "Compiti, materiali e consegne per materia. Upload diretto dei lavori." },
-  { icon: CalendarDays, title: "Orario e calendario", desc: "Orario settimanale e calendario eventi scolastici sempre aggiornato." },
-  { icon: Bell, title: "Notifiche e annunci", desc: "Circolari, avvisi urgenti e comunicazioni docenti con notifiche push." },
-  { icon: MessageSquare, title: "Forum per materia", desc: "Canali di discussione per fare domande ai professori e collaborare coi compagni." },
-  { icon: TrendingUp, title: "Analytics per docenti", desc: "Dashboard con andamento della classe, trend voti e tasso di presenza." },
-  { icon: Award, title: "Portfolio competenze", desc: "Tracciamento delle competenze acquisite per materia, utile per la maturità." },
-  { icon: Plane, title: "Uscite didattiche", desc: "Autorizzazioni digitali e iscrizione alle uscite scolastiche in un click." },
-  { icon: FileText, title: "Certificati PDF", desc: "Scarica certificati di iscrizione, frequenza e pagella in autonomia." },
+  {
+    icon: ClipboardList,
+    title: "Registro elettronico",
+    desc: "Voti, presenze e note disciplinari in tempo reale per studenti e famiglie.",
+  },
+  {
+    icon: BookOpen,
+    title: "Classroom digitale",
+    desc: "Compiti, materiali e consegne per materia. Upload diretto dei lavori.",
+  },
+  {
+    icon: CalendarDays,
+    title: "Orario e calendario",
+    desc: "Orario settimanale e calendario eventi scolastici sempre aggiornato.",
+  },
+  {
+    icon: Bell,
+    title: "Notifiche e annunci",
+    desc: "Circolari, avvisi urgenti e comunicazioni docenti con notifiche push.",
+  },
+  {
+    icon: MessageSquare,
+    title: "Forum per materia",
+    desc: "Canali di discussione per fare domande ai professori e collaborare coi compagni.",
+  },
+  {
+    icon: TrendingUp,
+    title: "Analytics per docenti",
+    desc: "Dashboard con andamento della classe, trend voti e tasso di presenza.",
+  },
+  {
+    icon: Award,
+    title: "Portfolio competenze",
+    desc: "Tracciamento delle competenze acquisite per materia, utile per la maturità.",
+  },
+  {
+    icon: Plane,
+    title: "Uscite didattiche",
+    desc: "Autorizzazioni digitali e iscrizione alle uscite scolastiche in un click.",
+  },
+  {
+    icon: FileText,
+    title: "Certificati PDF",
+    desc: "Scarica certificati di iscrizione, frequenza e pagella in autonomia.",
+  },
 ];
 
 const FAQS = [

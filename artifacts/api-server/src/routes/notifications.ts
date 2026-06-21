@@ -17,7 +17,11 @@ router.get("/", requireAuth, async (req: any, res: any) => {
       .where(eq(notificationsTable.userId, user.id))
       .orderBy(notificationsTable.createdAt);
 
-    res.json(records.map(n => ({ ...n, createdAt: n.createdAt.toISOString() })).reverse());
+    res.json(
+      records
+        .map((n) => ({ ...n, createdAt: n.createdAt.toISOString() }))
+        .reverse(),
+    );
   } catch (err) {
     req.log.error({ err }, "Error listing notifications");
     res.status(500).json({ error: "Internal server error" });
@@ -48,7 +52,12 @@ router.post("/read-all", requireAuth, async (req: any, res: any) => {
     await db
       .update(notificationsTable)
       .set({ read: true })
-      .where(and(eq(notificationsTable.userId, user.id), eq(notificationsTable.read, false)));
+      .where(
+        and(
+          eq(notificationsTable.userId, user.id),
+          eq(notificationsTable.read, false),
+        ),
+      );
 
     res.json({ ok: true });
   } catch (err) {

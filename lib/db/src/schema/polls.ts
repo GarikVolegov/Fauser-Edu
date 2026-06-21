@@ -26,7 +26,10 @@ export const pollVotesTable = pgTable("poll_votes", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const insertPollSchema = createInsertSchema(pollsTable).omit({ id: true, createdAt: true });
+export const insertPollSchema = createInsertSchema(pollsTable).omit({
+  id: true,
+  createdAt: true,
+});
 export type InsertPoll = z.infer<typeof insertPollSchema>;
 export type Poll = typeof pollsTable.$inferSelect;
 export type PollOption = typeof pollOptionsTable.$inferSelect;

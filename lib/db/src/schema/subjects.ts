@@ -9,6 +9,8 @@ export const subjectsTable = pgTable("subjects", {
   color: text("color"),
 });
 
-export const insertSubjectSchema = createInsertSchema(subjectsTable).omit({ id: true });
+export const insertSubjectSchema = createInsertSchema(subjectsTable).omit({
+  id: true,
+});
 export type InsertSubject = z.infer<typeof insertSubjectSchema>;
 export type Subject = typeof subjectsTable.$inferSelect;

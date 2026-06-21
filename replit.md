@@ -34,23 +34,23 @@ Ecosistema scolastico digitale completo per studenti e docenti dell'ITT G.Fauser
 
 ## Product — Feature Matrix
 
-| Feature | Frontend Route | Backend Routes |
-|---------|---------------|----------------|
-| Registro elettronico (voti + presenze) | `/registro` | `/api/grades`, `/api/attendance` |
-| Classroom (compiti + materiali) | `/classroom` | `/api/assignments`, `/api/materials` |
-| Calendario eventi | `/calendario` | `/api/events` |
-| Comunicazioni/Annunci | `/comunicazioni` | `/api/announcements` |
-| Email client (IMAP/SMTP) | `/messaggi` | `/api/email` |
-| Chat di classe | `/messaggi` | `/api/groups` |
-| **Orario settimanale** | `/orario` | `/api/schedule` |
-| **Giustificazioni assenze** | `/giustificazioni` | `/api/justifications` |
-| **Prenotazione colloqui** | `/colloqui` | `/api/appointments` |
-| **Notifiche con badge** | (sidebar bell) | `/api/notifications` |
-| **Profilo + QR tessera** | `/profilo` | `/api/users/me` |
-| **Note disciplinari** | `/registro` (tab Note) | `/api/behavior-notes` |
-| **Libreria risorse condivise** | `/libreria` | `/api/materials` |
-| **Bacheca tutoraggio** | `/tutoraggio` | `/api/tutoring` |
-| **Panel admin segreteria** | `/admin` | existing endpoints |
+| Feature                                | Frontend Route         | Backend Routes                       |
+| -------------------------------------- | ---------------------- | ------------------------------------ |
+| Registro elettronico (voti + presenze) | `/registro`            | `/api/grades`, `/api/attendance`     |
+| Classroom (compiti + materiali)        | `/classroom`           | `/api/assignments`, `/api/materials` |
+| Calendario eventi                      | `/calendario`          | `/api/events`                        |
+| Comunicazioni/Annunci                  | `/comunicazioni`       | `/api/announcements`                 |
+| Email client (IMAP/SMTP)               | `/messaggi`            | `/api/email`                         |
+| Chat di classe                         | `/messaggi`            | `/api/groups`                        |
+| **Orario settimanale**                 | `/orario`              | `/api/schedule`                      |
+| **Giustificazioni assenze**            | `/giustificazioni`     | `/api/justifications`                |
+| **Prenotazione colloqui**              | `/colloqui`            | `/api/appointments`                  |
+| **Notifiche con badge**                | (sidebar bell)         | `/api/notifications`                 |
+| **Profilo + QR tessera**               | `/profilo`             | `/api/users/me`                      |
+| **Note disciplinari**                  | `/registro` (tab Note) | `/api/behavior-notes`                |
+| **Libreria risorse condivise**         | `/libreria`            | `/api/materials`                     |
+| **Bacheca tutoraggio**                 | `/tutoraggio`          | `/api/tutoring`                      |
+| **Panel admin segreteria**             | `/admin`               | existing endpoints                   |
 
 ## Architecture decisions
 

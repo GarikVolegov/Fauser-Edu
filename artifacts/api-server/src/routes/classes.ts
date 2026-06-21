@@ -9,7 +9,9 @@ const router = Router();
 router.get("/", requireAuth, async (req: any, res: any) => {
   try {
     const classes = await db.select().from(classesTable);
-    res.json(classes.map(c => ({ ...c, createdAt: c.createdAt.toISOString() })));
+    res.json(
+      classes.map((c) => ({ ...c, createdAt: c.createdAt.toISOString() })),
+    );
   } catch (err) {
     req.log.error({ err }, "Error listing classes");
     res.status(500).json({ error: "Internal server error" });
@@ -19,7 +21,8 @@ router.get("/", requireAuth, async (req: any, res: any) => {
 router.post("/", requireAuth, async (req: any, res: any) => {
   try {
     const parsed = CreateClassBody.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ error: "Invalid input" });
+    if (!parsed.success)
+      return res.status(400).json({ error: "Invalid input" });
     const [cls] = await db.insert(classesTable).values(parsed.data).returning();
     res.status(201).json({ ...cls, createdAt: cls.createdAt.toISOString() });
   } catch (err) {
@@ -31,7 +34,11 @@ router.post("/", requireAuth, async (req: any, res: any) => {
 router.get("/:id", requireAuth, async (req: any, res: any) => {
   try {
     const id = parseInt(req.params.id);
-    const [cls] = await db.select().from(classesTable).where(eq(classesTable.id, id)).limit(1);
+    const [cls] = await db
+      .select()
+      .from(classesTable)
+      .where(eq(classesTable.id, id))
+      .limit(1);
     if (!cls) return res.status(404).json({ error: "Not found" });
     res.json({ ...cls, createdAt: cls.createdAt.toISOString() });
   } catch (err) {
@@ -44,8 +51,13 @@ router.patch("/:id", requireAuth, async (req: any, res: any) => {
   try {
     const id = parseInt(req.params.id);
     const parsed = UpdateClassBody.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ error: "Invalid input" });
-    const [cls] = await db.update(classesTable).set(parsed.data).where(eq(classesTable.id, id)).returning();
+    if (!parsed.success)
+      return res.status(400).json({ error: "Invalid input" });
+    const [cls] = await db
+      .update(classesTable)
+      .set(parsed.data)
+      .where(eq(classesTable.id, id))
+      .returning();
     res.json({ ...cls, createdAt: cls.createdAt.toISOString() });
   } catch (err) {
     req.log.error({ err }, "Error updating class");

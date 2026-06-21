@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { db, tutoringPostsTable, usersTable, subjectsTable } from "@workspace/db";
+import {
+  db,
+  tutoringPostsTable,
+  usersTable,
+  subjectsTable,
+} from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireAuth, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
@@ -7,8 +12,16 @@ import { getAuth } from "@clerk/express";
 const router = Router();
 
 async function enrichPost(p: typeof tutoringPostsTable.$inferSelect) {
-  const [author] = await db.select().from(usersTable).where(eq(usersTable.id, p.authorId)).limit(1);
-  const [subject] = await db.select().from(subjectsTable).where(eq(subjectsTable.id, p.subjectId)).limit(1);
+  const [author] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, p.authorId))
+    .limit(1);
+  const [subject] = await db
+    .select()
+    .from(subjectsTable)
+    .where(eq(subjectsTable.id, p.subjectId))
+    .limit(1);
   return {
     ...p,
     authorName: author ? `${author.firstName} ${author.lastName}` : "Unknown",
@@ -20,12 +33,23 @@ async function enrichPost(p: typeof tutoringPostsTable.$inferSelect) {
 router.get("/", requireAuth, async (req: any, res: any) => {
   try {
     const filters: any[] = [];
-    if (req.query.subjectId) filters.push(eq(tutoringPostsTable.subjectId, parseInt(req.query.subjectId as string)));
-    if (req.query.type) filters.push(eq(tutoringPostsTable.type, req.query.type as string));
+    if (req.query.subjectId)
+      filters.push(
+        eq(
+          tutoringPostsTable.subjectId,
+          parseInt(req.query.subjectId as string),
+        ),
+      );
+    if (req.query.type)
+      filters.push(eq(tutoringPostsTable.type, req.query.type as string));
 
-    const records = filters.length > 0
-      ? await db.select().from(tutoringPostsTable).where(and(...filters))
-      : await db.select().from(tutoringPostsTable);
+    const records =
+      filters.length > 0
+        ? await db
+            .select()
+            .from(tutoringPostsTable)
+            .where(and(...filters))
+        : await db.select().from(tutoringPostsTable);
 
     res.json(await Promise.all(records.map(enrichPost)));
   } catch (err) {

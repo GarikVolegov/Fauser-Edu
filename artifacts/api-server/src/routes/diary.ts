@@ -9,7 +9,11 @@ const router = Router();
 async function enrichEntry(e: typeof diaryEntriesTable.$inferSelect) {
   let subjectName: string | null = null;
   if (e.subjectId) {
-    const [s] = await db.select().from(subjectsTable).where(eq(subjectsTable.id, e.subjectId)).limit(1);
+    const [s] = await db
+      .select()
+      .from(subjectsTable)
+      .where(eq(subjectsTable.id, e.subjectId))
+      .limit(1);
     subjectName = s?.name ?? null;
   }
   return {
@@ -24,7 +28,10 @@ router.get("/", requireAuth, async (req: any, res: any) => {
   try {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);
-    const entries = await db.select().from(diaryEntriesTable).where(eq(diaryEntriesTable.userId, user.id));
+    const entries = await db
+      .select()
+      .from(diaryEntriesTable)
+      .where(eq(diaryEntriesTable.userId, user.id));
     res.json(await Promise.all(entries.map(enrichEntry)));
   } catch (err) {
     req.log.error({ err }, "Error listing diary entries");
@@ -37,9 +44,13 @@ router.post("/", requireAuth, async (req: any, res: any) => {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);
     const { title, content, subjectId } = req.body;
-    if (!title || !content) return res.status(400).json({ error: "Missing fields" });
+    if (!title || !content)
+      return res.status(400).json({ error: "Missing fields" });
 
-    const [entry] = await db.insert(diaryEntriesTable).values({ userId: user.id, title, content, subjectId: subjectId ?? null }).returning();
+    const [entry] = await db
+      .insert(diaryEntriesTable)
+      .values({ userId: user.id, title, content, subjectId: subjectId ?? null })
+      .returning();
     res.status(201).json(await enrichEntry(entry));
   } catch (err) {
     req.log.error({ err }, "Error creating diary entry");
@@ -56,7 +67,11 @@ router.patch("/:id", requireAuth, async (req: any, res: any) => {
     if (content !== undefined) updates.content = content;
     if (subjectId !== undefined) updates.subjectId = subjectId;
 
-    const [entry] = await db.update(diaryEntriesTable).set(updates).where(eq(diaryEntriesTable.id, id)).returning();
+    const [entry] = await db
+      .update(diaryEntriesTable)
+      .set(updates)
+      .where(eq(diaryEntriesTable.id, id))
+      .returning();
     res.json(await enrichEntry(entry));
   } catch (err) {
     req.log.error({ err }, "Error updating diary entry");

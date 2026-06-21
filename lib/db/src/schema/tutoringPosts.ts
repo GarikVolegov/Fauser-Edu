@@ -13,6 +13,8 @@ export const tutoringPostsTable = pgTable("tutoring_posts", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const insertTutoringPostSchema = createInsertSchema(tutoringPostsTable).omit({ id: true, createdAt: true });
+export const insertTutoringPostSchema = createInsertSchema(
+  tutoringPostsTable,
+).omit({ id: true, createdAt: true });
 export type InsertTutoringPost = z.infer<typeof insertTutoringPostSchema>;
 export type TutoringPost = typeof tutoringPostsTable.$inferSelect;

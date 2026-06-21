@@ -22,10 +22,12 @@ export default function Diario() {
     queryKey: ["diary"],
     queryFn: async () => {
       const token = await getToken();
-      const r = await fetch("/api/diary", { headers: { Authorization: `Bearer ${token}` } });
+      const r = await fetch("/api/diary", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!r.ok) return [];
       return r.json();
-    }
+    },
   });
 
   const createEntry = useMutation({
@@ -33,8 +35,11 @@ export default function Diario() {
       const token = await getToken();
       const r = await fetch("/api/diary", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ title: "Nuova nota", content: "" })
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ title: "Nuova nota", content: "" }),
       });
       return r.json();
     },
@@ -43,24 +48,27 @@ export default function Diario() {
       setSelectedId(data.id);
       setTitle(data.title);
       setContent(data.content);
-    }
+    },
   });
 
   const updateEntry = useMutation({
-    mutationFn: async ({ id, data }: { id: number, data: any }) => {
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
       const token = await getToken();
       const r = await fetch(`/api/diary/${id}`, {
         method: "PATCH",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
       });
       return r.json();
     },
     onSuccess: (data) => {
-      queryClient.setQueryData(["diary"], (old: any) => 
-        old?.map((e: any) => e.id === data.id ? data : e)
+      queryClient.setQueryData(["diary"], (old: any) =>
+        old?.map((e: any) => (e.id === data.id ? data : e)),
       );
-    }
+    },
   });
 
   const selectedEntry = entries.find((e: any) => e.id === selectedId);
@@ -90,9 +98,10 @@ export default function Diario() {
     saveTimeoutRef.current = setTimeout(handleSave, 500);
   };
 
-  const filteredEntries = entries.filter((e: any) => 
-    e.title?.toLowerCase().includes(search.toLowerCase()) || 
-    e.subjectName?.toLowerCase().includes(search.toLowerCase())
+  const filteredEntries = entries.filter(
+    (e: any) =>
+      e.title?.toLowerCase().includes(search.toLowerCase()) ||
+      e.subjectName?.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -104,24 +113,31 @@ export default function Diario() {
             <h2 className="font-bold text-lg flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-primary" /> Diario
             </h2>
-            <Button size="icon" variant="ghost" onClick={() => createEntry.mutate()} disabled={createEntry.isPending}>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => createEntry.mutate()}
+              disabled={createEntry.isPending}
+            >
               <Plus className="h-5 w-5" />
             </Button>
           </div>
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Cerca nota..." 
-              className="pl-9 h-9 bg-background" 
+            <Input
+              placeholder="Cerca nota..."
+              className="pl-9 h-9 bg-background"
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
             />
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
             <div className="p-4 space-y-3">
-              {[1,2,3].map(i => <Skeleton key={i} className="h-16 w-full" />)}
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-16 w-full" />
+              ))}
             </div>
           ) : filteredEntries.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground text-sm">
@@ -129,14 +145,18 @@ export default function Diario() {
             </div>
           ) : (
             filteredEntries.map((e: any) => (
-              <div 
+              <div
                 key={e.id}
                 onClick={() => setSelectedId(e.id)}
-                className={`p-4 border-b cursor-pointer transition-colors hover:bg-muted/50 ${selectedId === e.id ? 'bg-primary/5 border-l-4 border-l-primary' : 'border-l-4 border-l-transparent'}`}
+                className={`p-4 border-b cursor-pointer transition-colors hover:bg-muted/50 ${selectedId === e.id ? "bg-primary/5 border-l-4 border-l-primary" : "border-l-4 border-l-transparent"}`}
               >
-                <div className="font-medium truncate">{e.title || "Senza titolo"}</div>
+                <div className="font-medium truncate">
+                  {e.title || "Senza titolo"}
+                </div>
                 <div className="flex justify-between items-center mt-1">
-                  <div className="text-xs text-muted-foreground truncate">{e.subjectName || "Generale"}</div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {e.subjectName || "Generale"}
+                  </div>
                   <div className="text-[10px] text-muted-foreground">
                     {format(new Date(e.updatedAt), "d MMM", { locale: it })}
                   </div>
@@ -151,7 +171,7 @@ export default function Diario() {
       <div className="flex-1 flex flex-col bg-background">
         {selectedId ? (
           <div className="flex-1 flex flex-col p-6 max-w-4xl mx-auto w-full">
-            <Input 
+            <Input
               value={title}
               onChange={handleTitleChange}
               onBlur={handleSave}
@@ -161,9 +181,17 @@ export default function Diario() {
             <div className="flex items-center gap-2 mb-8 text-sm text-muted-foreground">
               <span>{selectedEntry?.subjectName || "Generale"}</span>
               <span>•</span>
-              <span>Ultima modifica: {selectedEntry && format(new Date(selectedEntry.updatedAt), "d MMMM yyyy, HH:mm", { locale: it })}</span>
+              <span>
+                Ultima modifica:{" "}
+                {selectedEntry &&
+                  format(
+                    new Date(selectedEntry.updatedAt),
+                    "d MMMM yyyy, HH:mm",
+                    { locale: it },
+                  )}
+              </span>
             </div>
-            <Textarea 
+            <Textarea
               value={content}
               onChange={handleContentChange}
               onBlur={handleSave}

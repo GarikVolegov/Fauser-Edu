@@ -14,8 +14,13 @@ router.get("/account", requireAuth, async (req: any, res: any) => {
   try {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);
-    const [account] = await db.select().from(emailAccountsTable).where(eq(emailAccountsTable.userId, user.id)).limit(1);
-    if (!account) return res.status(404).json({ error: "No email account configured" });
+    const [account] = await db
+      .select()
+      .from(emailAccountsTable)
+      .where(eq(emailAccountsTable.userId, user.id))
+      .limit(1);
+    if (!account)
+      return res.status(404).json({ error: "No email account configured" });
     res.json({
       id: account.id,
       userId: account.userId,
@@ -37,37 +42,56 @@ router.put("/account", requireAuth, async (req: any, res: any) => {
   try {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);
-    const { imapHost, imapPort, smtpHost, smtpPort, username, password, useSsl } = req.body;
+    const {
+      imapHost,
+      imapPort,
+      smtpHost,
+      smtpPort,
+      username,
+      password,
+      useSsl,
+    } = req.body;
     if (!imapHost || !smtpHost || !username || !password) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
     const passwordEncrypted = encrypt(String(password));
-    const existing = await db.select().from(emailAccountsTable).where(eq(emailAccountsTable.userId, user.id)).limit(1);
+    const existing = await db
+      .select()
+      .from(emailAccountsTable)
+      .where(eq(emailAccountsTable.userId, user.id))
+      .limit(1);
 
     let account;
     if (existing.length > 0) {
-      [account] = await db.update(emailAccountsTable).set({
-        imapHost: String(imapHost),
-        imapPort: Number(imapPort ?? 993),
-        smtpHost: String(smtpHost),
-        smtpPort: Number(smtpPort ?? 587),
-        username: String(username),
-        passwordEncrypted,
-        useSsl: useSsl !== false,
-        updatedAt: new Date(),
-      }).where(eq(emailAccountsTable.userId, user.id)).returning();
+      [account] = await db
+        .update(emailAccountsTable)
+        .set({
+          imapHost: String(imapHost),
+          imapPort: Number(imapPort ?? 993),
+          smtpHost: String(smtpHost),
+          smtpPort: Number(smtpPort ?? 587),
+          username: String(username),
+          passwordEncrypted,
+          useSsl: useSsl !== false,
+          updatedAt: new Date(),
+        })
+        .where(eq(emailAccountsTable.userId, user.id))
+        .returning();
     } else {
-      [account] = await db.insert(emailAccountsTable).values({
-        userId: user.id,
-        imapHost: String(imapHost),
-        imapPort: Number(imapPort ?? 993),
-        smtpHost: String(smtpHost),
-        smtpPort: Number(smtpPort ?? 587),
-        username: String(username),
-        passwordEncrypted,
-        useSsl: useSsl !== false,
-      }).returning();
+      [account] = await db
+        .insert(emailAccountsTable)
+        .values({
+          userId: user.id,
+          imapHost: String(imapHost),
+          imapPort: Number(imapPort ?? 993),
+          smtpHost: String(smtpHost),
+          smtpPort: Number(smtpPort ?? 587),
+          username: String(username),
+          passwordEncrypted,
+          useSsl: useSsl !== false,
+        })
+        .returning();
     }
 
     res.json({
@@ -88,11 +112,21 @@ router.put("/account", requireAuth, async (req: any, res: any) => {
 });
 
 async function getAccountForUser(userId: number) {
-  const [account] = await db.select().from(emailAccountsTable).where(eq(emailAccountsTable.userId, userId)).limit(1);
+  const [account] = await db
+    .select()
+    .from(emailAccountsTable)
+    .where(eq(emailAccountsTable.userId, userId))
+    .limit(1);
   return account ?? null;
 }
 
-function makeImapClient(account: { imapHost: string; imapPort: number; useSsl: boolean; username: string; passwordEncrypted: string }) {
+function makeImapClient(account: {
+  imapHost: string;
+  imapPort: number;
+  useSsl: boolean;
+  username: string;
+  passwordEncrypted: string;
+}) {
   return new ImapFlow({
     host: account.imapHost,
     port: account.imapPort,
@@ -107,7 +141,8 @@ router.get("/inbox", requireAuth, async (req: any, res: any) => {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);
     const account = await getAccountForUser(user.id);
-    if (!account) return res.status(424).json({ error: "No email account configured" });
+    if (!account)
+      return res.status(424).json({ error: "No email account configured" });
 
     const limit = Math.min(parseInt(String(req.query.limit ?? "30")), 100);
     const client = makeImapClient(account);
@@ -121,7 +156,10 @@ router.get("/inbox", requireAuth, async (req: any, res: any) => {
       const from = Math.max(1, total - limit + 1);
       const range = `${from}:${total}`;
 
-      for await (const msg of client.fetch(range, { envelope: true, flags: true })) {
+      for await (const msg of client.fetch(range, {
+        envelope: true,
+        flags: true,
+      })) {
         const envelope = msg.envelope;
         messages.push({
           uid: msg.uid,
@@ -146,7 +184,8 @@ router.get("/message/:uid", requireAuth, async (req: any, res: any) => {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);
     const account = await getAccountForUser(user.id);
-    if (!account) return res.status(424).json({ error: "No email account configured" });
+    if (!account)
+      return res.status(424).json({ error: "No email account configured" });
 
     const uid = parseInt(req.params.uid);
     const client = makeImapClient(account);
@@ -155,7 +194,11 @@ router.get("/message/:uid", requireAuth, async (req: any, res: any) => {
     await client.mailboxOpen("INBOX");
 
     let result: any = null;
-    for await (const msg of client.fetch({ uid }, { envelope: true, flags: true, source: true }, { uid: true })) {
+    for await (const msg of client.fetch(
+      { uid },
+      { envelope: true, flags: true, source: true },
+      { uid: true },
+    )) {
       const source = msg.source;
       const envelope = msg.envelope;
       if (source) {
@@ -187,16 +230,21 @@ router.post("/send", requireAuth, async (req: any, res: any) => {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);
     const account = await getAccountForUser(user.id);
-    if (!account) return res.status(424).json({ error: "No email account configured" });
+    if (!account)
+      return res.status(424).json({ error: "No email account configured" });
 
     const { to, subject, text } = req.body;
-    if (!to || !subject || !text) return res.status(400).json({ error: "Missing fields" });
+    if (!to || !subject || !text)
+      return res.status(400).json({ error: "Missing fields" });
 
     const transporter = nodemailer.createTransport({
       host: account.smtpHost,
       port: account.smtpPort,
       secure: account.smtpPort === 465,
-      auth: { user: account.username, pass: decrypt(account.passwordEncrypted) },
+      auth: {
+        user: account.username,
+        pass: decrypt(account.passwordEncrypted),
+      },
     });
 
     await transporter.sendMail({ from: account.username, to, subject, text });

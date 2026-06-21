@@ -1,4 +1,12 @@
-import { pgTable, serial, integer, text, date, numeric, timestamp } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  serial,
+  integer,
+  text,
+  date,
+  numeric,
+  timestamp,
+} from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -23,7 +31,11 @@ export const fieldTripParticipantsTable = pgTable("field_trip_participants", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const insertFieldTripSchema = createInsertSchema(fieldTripsTable).omit({ id: true, createdAt: true });
+export const insertFieldTripSchema = createInsertSchema(fieldTripsTable).omit({
+  id: true,
+  createdAt: true,
+});
 export type InsertFieldTrip = z.infer<typeof insertFieldTripSchema>;
 export type FieldTrip = typeof fieldTripsTable.$inferSelect;
-export type FieldTripParticipant = typeof fieldTripParticipantsTable.$inferSelect;
+export type FieldTripParticipant =
+  typeof fieldTripParticipantsTable.$inferSelect;

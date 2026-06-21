@@ -15,6 +15,9 @@ export const materialsTable = pgTable("materials", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const insertMaterialSchema = createInsertSchema(materialsTable).omit({ id: true, createdAt: true });
+export const insertMaterialSchema = createInsertSchema(materialsTable).omit({
+  id: true,
+  createdAt: true,
+});
 export type InsertMaterial = z.infer<typeof insertMaterialSchema>;
 export type Material = typeof materialsTable.$inferSelect;

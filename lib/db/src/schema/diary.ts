@@ -12,6 +12,8 @@ export const diaryEntriesTable = pgTable("diary_entries", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const insertDiaryEntrySchema = createInsertSchema(diaryEntriesTable).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertDiaryEntrySchema = createInsertSchema(
+  diaryEntriesTable,
+).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertDiaryEntry = z.infer<typeof insertDiaryEntrySchema>;
 export type DiaryEntry = typeof diaryEntriesTable.$inferSelect;

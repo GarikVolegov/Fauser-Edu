@@ -1,9 +1,15 @@
-import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "crypto";
+import {
+  createCipheriv,
+  createDecipheriv,
+  randomBytes,
+  scryptSync,
+} from "crypto";
 
 const ALGO = "aes-256-cbc";
 
 function getKey(): Buffer {
-  const secret = process.env.SESSION_SECRET ?? "fauser-default-secret-placeholder!";
+  const secret =
+    process.env.SESSION_SECRET ?? "fauser-default-secret-placeholder!";
   return scryptSync(secret, "fauser-email-salt", 32);
 }
 

@@ -1,12 +1,26 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mail, Users, Send, Settings, Inbox, RefreshCw, ArrowLeft } from "lucide-react";
+import {
+  Mail,
+  Users,
+  Send,
+  Settings,
+  Inbox,
+  RefreshCw,
+  ArrowLeft,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useUser } from "@clerk/react";
@@ -28,29 +42,52 @@ import { useQueryClient } from "@tanstack/react-query";
 
 const stagger = {
   container: { hidden: {}, show: { transition: { staggerChildren: 0.04 } } },
-  item: { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0, transition: { duration: 0.25 } } },
+  item: {
+    hidden: { opacity: 0, y: 12 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  },
 };
 
 function EmailSetupDialog({ onSaved }: { onSaved: () => void }) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const saveAccount = useSaveEmailAccount();
-  const { register, handleSubmit, formState: { errors } } = useForm({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
     defaultValues: {
-      imapHost: "", imapPort: 993, smtpHost: "", smtpPort: 587,
-      username: "", password: "", useSsl: true,
-    }
+      imapHost: "",
+      imapPort: 993,
+      smtpHost: "",
+      smtpPort: 587,
+      username: "",
+      password: "",
+      useSsl: true,
+    },
   });
 
   const onSubmit = (data: any) => {
-    saveAccount.mutate({ data: { ...data, imapPort: Number(data.imapPort), smtpPort: Number(data.smtpPort), useSsl: true } }, {
-      onSuccess: () => {
-        toast({ title: "Account email salvato" });
-        setOpen(false);
-        onSaved();
+    saveAccount.mutate(
+      {
+        data: {
+          ...data,
+          imapPort: Number(data.imapPort),
+          smtpPort: Number(data.smtpPort),
+          useSsl: true,
+        },
       },
-      onError: () => toast({ title: "Errore nel salvataggio", variant: "destructive" }),
-    });
+      {
+        onSuccess: () => {
+          toast({ title: "Account email salvato" });
+          setOpen(false);
+          onSaved();
+        },
+        onError: () =>
+          toast({ title: "Errore nel salvataggio", variant: "destructive" }),
+      },
+    );
   };
 
   return (
@@ -65,34 +102,69 @@ function EmailSetupDialog({ onSaved }: { onSaved: () => void }) {
           <DialogTitle>Configurazione Account Email</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <p className="text-sm text-muted-foreground">Inserisci le credenziali del tuo account email scolastico (IMAP/SMTP).</p>
+          <p className="text-sm text-muted-foreground">
+            Inserisci le credenziali del tuo account email scolastico
+            (IMAP/SMTP).
+          </p>
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2">
               <Label>Email / Username</Label>
-              <Input {...register("username", { required: true })} placeholder="nome@scuola.it" data-testid="input-email-username" />
+              <Input
+                {...register("username", { required: true })}
+                placeholder="nome@scuola.it"
+                data-testid="input-email-username"
+              />
             </div>
             <div className="col-span-2">
               <Label>Password</Label>
-              <Input type="password" {...register("password", { required: true })} placeholder="••••••••" data-testid="input-email-password" />
+              <Input
+                type="password"
+                {...register("password", { required: true })}
+                placeholder="••••••••"
+                data-testid="input-email-password"
+              />
             </div>
             <div>
               <Label>Server IMAP</Label>
-              <Input {...register("imapHost", { required: true })} placeholder="imap.scuola.it" data-testid="input-imap-host" />
+              <Input
+                {...register("imapHost", { required: true })}
+                placeholder="imap.scuola.it"
+                data-testid="input-imap-host"
+              />
             </div>
             <div>
               <Label>Porta IMAP</Label>
-              <Input type="number" {...register("imapPort")} placeholder="993" data-testid="input-imap-port" />
+              <Input
+                type="number"
+                {...register("imapPort")}
+                placeholder="993"
+                data-testid="input-imap-port"
+              />
             </div>
             <div>
               <Label>Server SMTP</Label>
-              <Input {...register("smtpHost", { required: true })} placeholder="smtp.scuola.it" data-testid="input-smtp-host" />
+              <Input
+                {...register("smtpHost", { required: true })}
+                placeholder="smtp.scuola.it"
+                data-testid="input-smtp-host"
+              />
             </div>
             <div>
               <Label>Porta SMTP</Label>
-              <Input type="number" {...register("smtpPort")} placeholder="587" data-testid="input-smtp-port" />
+              <Input
+                type="number"
+                {...register("smtpPort")}
+                placeholder="587"
+                data-testid="input-smtp-port"
+              />
             </div>
           </div>
-          <Button type="submit" className="w-full" disabled={saveAccount.isPending} data-testid="button-save-email-account">
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={saveAccount.isPending}
+            data-testid="button-save-email-account"
+          >
             {saveAccount.isPending ? "Salvataggio..." : "Salva configurazione"}
           </Button>
         </form>
@@ -105,17 +177,26 @@ function ComposeDialog({ defaultTo = "" }: { defaultTo?: string }) {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
   const sendEmail = useSendEmail();
-  const { register, handleSubmit, reset } = useForm({ defaultValues: { to: defaultTo, subject: "", text: "" } });
+  const { register, handleSubmit, reset } = useForm({
+    defaultValues: { to: defaultTo, subject: "", text: "" },
+  });
 
   const onSubmit = (data: any) => {
-    sendEmail.mutate({ data }, {
-      onSuccess: () => {
-        toast({ title: "Email inviata" });
-        reset();
-        setOpen(false);
+    sendEmail.mutate(
+      { data },
+      {
+        onSuccess: () => {
+          toast({ title: "Email inviata" });
+          reset();
+          setOpen(false);
+        },
+        onError: (err: any) =>
+          toast({
+            title: `Errore: ${err?.message ?? "Invio fallito"}`,
+            variant: "destructive",
+          }),
       },
-      onError: (err: any) => toast({ title: `Errore: ${err?.message ?? "Invio fallito"}`, variant: "destructive" }),
-    });
+    );
   };
 
   return (
@@ -126,21 +207,41 @@ function ComposeDialog({ defaultTo = "" }: { defaultTo?: string }) {
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg">
-        <DialogHeader><DialogTitle>Nuova Email</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle>Nuova Email</DialogTitle>
+        </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <Label>A</Label>
-            <Input {...register("to", { required: true })} placeholder="professore@scuola.it" data-testid="input-email-to" />
+            <Input
+              {...register("to", { required: true })}
+              placeholder="professore@scuola.it"
+              data-testid="input-email-to"
+            />
           </div>
           <div>
             <Label>Oggetto</Label>
-            <Input {...register("subject", { required: true })} placeholder="Oggetto del messaggio" data-testid="input-email-subject" />
+            <Input
+              {...register("subject", { required: true })}
+              placeholder="Oggetto del messaggio"
+              data-testid="input-email-subject"
+            />
           </div>
           <div>
             <Label>Messaggio</Label>
-            <Textarea {...register("text", { required: true })} rows={6} placeholder="Scrivi il tuo messaggio..." data-testid="textarea-email-body" />
+            <Textarea
+              {...register("text", { required: true })}
+              rows={6}
+              placeholder="Scrivi il tuo messaggio..."
+              data-testid="textarea-email-body"
+            />
           </div>
-          <Button type="submit" className="w-full" disabled={sendEmail.isPending} data-testid="button-send-email">
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={sendEmail.isPending}
+            data-testid="button-send-email"
+          >
             {sendEmail.isPending ? "Invio in corso..." : "Invia"}
           </Button>
         </form>
@@ -153,12 +254,25 @@ function EmailPanel() {
   const [selectedUid, setSelectedUid] = useState<number | null>(null);
   const queryClient = useQueryClient();
   const { data: account, isLoading: accountLoading } = useGetEmailAccount();
-  const { data: inbox, isLoading: inboxLoading, refetch } = useGetEmailInbox({}, {
-    query: { enabled: !!account, queryKey: getGetEmailInboxQueryKey({}) },
-  });
-  const { data: message, isLoading: msgLoading } = useGetEmailMessage(selectedUid!, {
-    query: { enabled: !!selectedUid, queryKey: ["email-message", selectedUid] as any },
-  });
+  const {
+    data: inbox,
+    isLoading: inboxLoading,
+    refetch,
+  } = useGetEmailInbox(
+    {},
+    {
+      query: { enabled: !!account, queryKey: getGetEmailInboxQueryKey({}) },
+    },
+  );
+  const { data: message, isLoading: msgLoading } = useGetEmailMessage(
+    selectedUid!,
+    {
+      query: {
+        enabled: !!selectedUid,
+        queryKey: ["email-message", selectedUid] as any,
+      },
+    },
+  );
 
   const hasAccount = !!account;
 
@@ -169,14 +283,21 @@ function EmailPanel() {
           <Mail className="h-5 w-5 text-primary" />
           <h2 className="font-semibold text-lg">Posta Elettronica</h2>
           {hasAccount && (
-            <Badge variant="secondary" className="text-xs">{account.username}</Badge>
+            <Badge variant="secondary" className="text-xs">
+              {account.username}
+            </Badge>
           )}
         </div>
         <div className="flex gap-2">
           <EmailSetupDialog onSaved={() => queryClient.invalidateQueries()} />
           {hasAccount && (
             <>
-              <Button variant="outline" size="sm" onClick={() => refetch()} data-testid="button-refresh-inbox">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refetch()}
+                data-testid="button-refresh-inbox"
+              >
                 <RefreshCw className="h-4 w-4" />
               </Button>
               <ComposeDialog />
@@ -192,7 +313,10 @@ function EmailPanel() {
           </div>
           <div>
             <p className="font-medium">Nessun account email configurato</p>
-            <p className="text-sm text-muted-foreground mt-1">Configura il tuo account IMAP/SMTP per leggere e inviare email ai professori</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Configura il tuo account IMAP/SMTP per leggere e inviare email ai
+              professori
+            </p>
           </div>
           <EmailSetupDialog onSaved={() => queryClient.invalidateQueries()} />
         </div>
@@ -205,17 +329,29 @@ function EmailPanel() {
             <div className="p-3 border-b bg-muted/30 flex items-center gap-2">
               <Inbox className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-medium">Posta in arrivo</span>
-              {inbox && <Badge variant="secondary" className="ml-auto text-xs">{inbox.length}</Badge>}
+              {inbox && (
+                <Badge variant="secondary" className="ml-auto text-xs">
+                  {inbox.length}
+                </Badge>
+              )}
             </div>
             <div className="overflow-y-auto max-h-[460px]">
               {inboxLoading && (
-                <div className="p-6 text-center text-muted-foreground text-sm">Caricamento messaggi...</div>
+                <div className="p-6 text-center text-muted-foreground text-sm">
+                  Caricamento messaggi...
+                </div>
               )}
               {!inboxLoading && inbox?.length === 0 && (
-                <div className="p-6 text-center text-muted-foreground text-sm">Nessun messaggio</div>
+                <div className="p-6 text-center text-muted-foreground text-sm">
+                  Nessun messaggio
+                </div>
               )}
               {!inboxLoading && inbox && inbox.length > 0 && (
-                <motion.div variants={stagger.container} initial="hidden" animate="show">
+                <motion.div
+                  variants={stagger.container}
+                  initial="hidden"
+                  animate="show"
+                >
                   {inbox.map((msg) => (
                     <motion.button
                       key={msg.uid}
@@ -226,12 +362,25 @@ function EmailPanel() {
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0 flex-1">
-                          <p className={`text-sm truncate ${!msg.seen ? "font-semibold" : "font-normal"}`}>{msg.from}</p>
-                          <p className="text-sm truncate text-muted-foreground">{msg.subject}</p>
+                          <p
+                            className={`text-sm truncate ${!msg.seen ? "font-semibold" : "font-normal"}`}
+                          >
+                            {msg.from}
+                          </p>
+                          <p className="text-sm truncate text-muted-foreground">
+                            {msg.subject}
+                          </p>
                         </div>
                         <div className="flex flex-col items-end gap-1 shrink-0">
-                          <span className="text-xs text-muted-foreground">{new Date(msg.date).toLocaleDateString("it-IT", { day: "2-digit", month: "short" })}</span>
-                          {!msg.seen && <span className="h-2 w-2 rounded-full bg-primary" />}
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(msg.date).toLocaleDateString("it-IT", {
+                              day: "2-digit",
+                              month: "short",
+                            })}
+                          </span>
+                          {!msg.seen && (
+                            <span className="h-2 w-2 rounded-full bg-primary" />
+                          )}
                         </div>
                       </div>
                     </motion.button>
@@ -259,18 +408,35 @@ function EmailPanel() {
             {selectedUid && message && !msgLoading && (
               <div className="p-4 h-full overflow-y-auto">
                 <div className="flex items-center gap-2 mb-4">
-                  <Button variant="ghost" size="sm" onClick={() => setSelectedUid(null)} className="md:hidden">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedUid(null)}
+                    className="md:hidden"
+                  >
                     <ArrowLeft className="h-4 w-4" />
                   </Button>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-base truncate" data-testid="text-email-subject">{message.subject}</h3>
-                    <p className="text-sm text-muted-foreground">Da: {message.from}</p>
-                    <p className="text-xs text-muted-foreground">{new Date(message.date).toLocaleString("it-IT")}</p>
+                    <h3
+                      className="font-semibold text-base truncate"
+                      data-testid="text-email-subject"
+                    >
+                      {message.subject}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Da: {message.from}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(message.date).toLocaleString("it-IT")}
+                    </p>
                   </div>
                   <ComposeDialog defaultTo={message.from} />
                 </div>
                 <hr className="mb-4" />
-                <div className="prose prose-sm max-w-none text-foreground text-sm leading-relaxed whitespace-pre-wrap" data-testid="text-email-body">
+                <div
+                  className="prose prose-sm max-w-none text-foreground text-sm leading-relaxed whitespace-pre-wrap"
+                  data-testid="text-email-body"
+                >
                   {message.text ?? "Nessun contenuto testuale"}
                 </div>
               </div>
@@ -294,7 +460,13 @@ function GroupPanel() {
 
   const { data: messages, isLoading } = useListGroupMessages(
     { classId: classId! },
-    { query: { enabled: !!classId, queryKey: getListGroupMessagesQueryKey({ classId: classId! }), refetchInterval: 5000 } }
+    {
+      query: {
+        enabled: !!classId,
+        queryKey: getListGroupMessagesQueryKey({ classId: classId! }),
+        refetchInterval: 5000,
+      },
+    },
   );
 
   const createMsg = useCreateGroupMessage();
@@ -303,7 +475,8 @@ function GroupPanel() {
 
   useEffect(() => {
     if (!classId && myClassId) setClassId(myClassId);
-    else if (!classId && classes && classes.length > 0) setClassId(classes[0].id);
+    else if (!classId && classes && classes.length > 0)
+      setClassId(classes[0].id);
   }, [myClassId, classes]);
 
   useEffect(() => {
@@ -312,16 +485,22 @@ function GroupPanel() {
 
   const handleSend = () => {
     if (!newMsg.trim() || !classId) return;
-    createMsg.mutate({ data: { classId, content: newMsg.trim() } }, {
-      onSuccess: () => {
-        setNewMsg("");
-        queryClient.invalidateQueries({ queryKey: getListGroupMessagesQueryKey({ classId: classId! }) });
+    createMsg.mutate(
+      { data: { classId, content: newMsg.trim() } },
+      {
+        onSuccess: () => {
+          setNewMsg("");
+          queryClient.invalidateQueries({
+            queryKey: getListGroupMessagesQueryKey({ classId: classId! }),
+          });
+        },
+        onError: () =>
+          toast({ title: "Errore nell'invio", variant: "destructive" }),
       },
-      onError: () => toast({ title: "Errore nell'invio", variant: "destructive" }),
-    });
+    );
   };
 
-  const selectedClass = classes?.find(c => c.id === classId);
+  const selectedClass = classes?.find((c) => c.id === classId);
 
   return (
     <div className="space-y-4">
@@ -329,11 +508,13 @@ function GroupPanel() {
         <div className="flex items-center gap-2">
           <Users className="h-5 w-5 text-primary" />
           <h2 className="font-semibold text-lg">Gruppo Classe</h2>
-          {selectedClass && <Badge variant="secondary">{selectedClass.name}</Badge>}
+          {selectedClass && (
+            <Badge variant="secondary">{selectedClass.name}</Badge>
+          )}
         </div>
         {classes && classes.length > 1 && (
           <div className="flex gap-1 flex-wrap">
-            {classes.map(c => (
+            {classes.map((c) => (
               <Button
                 key={c.id}
                 variant={classId === c.id ? "default" : "outline"}
@@ -348,10 +529,17 @@ function GroupPanel() {
         )}
       </div>
 
-      <div className="border rounded-lg overflow-hidden flex flex-col" style={{ height: "520px" }}>
+      <div
+        className="border rounded-lg overflow-hidden flex flex-col"
+        style={{ height: "520px" }}
+      >
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-muted/10">
-          {isLoading && <p className="text-center text-sm text-muted-foreground py-8">Caricamento messaggi...</p>}
+          {isLoading && (
+            <p className="text-center text-sm text-muted-foreground py-8">
+              Caricamento messaggi...
+            </p>
+          )}
           {!isLoading && (!messages || messages.length === 0) && (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-sm">
               <Users className="h-10 w-10 mb-3 opacity-30" />
@@ -369,13 +557,22 @@ function GroupPanel() {
                   className={`flex ${isMe ? "justify-end" : "justify-start"}`}
                   data-testid={`message-${msg.id}`}
                 >
-                  <div className={`max-w-[75%] rounded-2xl px-4 py-2 ${isMe ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-card border rounded-bl-sm"}`}>
+                  <div
+                    className={`max-w-[75%] rounded-2xl px-4 py-2 ${isMe ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-card border rounded-bl-sm"}`}
+                  >
                     {!isMe && (
-                      <p className="text-xs font-medium mb-1 opacity-70">{msg.senderName}</p>
+                      <p className="text-xs font-medium mb-1 opacity-70">
+                        {msg.senderName}
+                      </p>
                     )}
                     <p className="text-sm leading-relaxed">{msg.content}</p>
-                    <p className={`text-xs mt-1 ${isMe ? "opacity-60 text-right" : "text-muted-foreground"}`}>
-                      {new Date(msg.createdAt).toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}
+                    <p
+                      className={`text-xs mt-1 ${isMe ? "opacity-60 text-right" : "text-muted-foreground"}`}
+                    >
+                      {new Date(msg.createdAt).toLocaleTimeString("it-IT", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </p>
                   </div>
                 </motion.div>
@@ -389,8 +586,13 @@ function GroupPanel() {
         <div className="border-t p-3 flex gap-2 bg-card">
           <Input
             value={newMsg}
-            onChange={e => setNewMsg(e.target.value)}
-            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+            onChange={(e) => setNewMsg(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSend();
+              }
+            }}
             placeholder="Scrivi un messaggio al gruppo..."
             className="flex-1"
             disabled={!classId}
@@ -413,8 +615,12 @@ export default function Messaggi() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-primary tracking-tight">Messaggi</h1>
-        <p className="text-muted-foreground text-sm mt-1">Comunicazioni con i professori via email e gruppo classe</p>
+        <h1 className="text-2xl font-bold text-primary tracking-tight">
+          Messaggi
+        </h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          Comunicazioni con i professori via email e gruppo classe
+        </p>
       </div>
 
       <Tabs defaultValue="gruppo" className="space-y-4">

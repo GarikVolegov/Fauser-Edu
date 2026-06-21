@@ -23,10 +23,12 @@
 ### Task A1: Public health check
 
 **Files:**
+
 - Modify: `artifacts/api-server/src/app.ts`
 - Test: `artifacts/api-server/src/app.health.test.ts` (new)
 
 **Interfaces:**
+
 - Produces: `GET /api/healthz` → `200 {status:"ok"}`, mounted before any auth middleware.
 
 - [ ] **Step 1 — Failing test** (`app.health.test.ts`): use `supertest` against the express `app`, assert `GET /api/healthz` returns 200 and `{status:"ok"}` with no Clerk env set.
@@ -44,11 +46,13 @@
 ### Task A2: Backend dev-auth fallback
 
 **Files:**
+
 - Create: `artifacts/api-server/src/middlewares/devAuthMiddleware.ts`
 - Modify: `artifacts/api-server/src/app.ts`
 - Test: `artifacts/api-server/src/middlewares/devAuthMiddleware.test.ts`
 
 **Interfaces:**
+
 - Produces: `devAuthMiddleware` — sets `req.auth = () => ({ userId: DEV_USER_CLERK_ID, ... })` so `getAuth(req)` (which calls `req.auth(opts)`) returns a mock signed-in user. `DEV_USER_CLERK_ID = "dev_user_local"`.
 - Consumes: existing `getAuth`/`requireAuth` (unchanged).
 
@@ -73,12 +77,20 @@
 - [ ] **Step 4 — Run, expect PASS.** If `getAuth` rejects the shape, extend the mock object until it returns `userId`.
 - [ ] **Step 5 — Wire in `app.ts`:** replace the unconditional clerk middleware with:
   ```ts
-  const devAuth = process.env.NODE_ENV === "development" && !process.env.CLERK_SECRET_KEY;
+  const devAuth =
+    process.env.NODE_ENV === "development" && !process.env.CLERK_SECRET_KEY;
   if (devAuth) {
     logger.warn("DEV AUTH FALLBACK active — all requests run as a mock user");
     app.use(devAuthMiddleware);
   } else {
-    app.use(clerkMiddleware((req) => ({ publishableKey: publishableKeyFromHost(getClerkProxyHost(req) ?? "", process.env.CLERK_PUBLISHABLE_KEY) })));
+    app.use(
+      clerkMiddleware((req) => ({
+        publishableKey: publishableKeyFromHost(
+          getClerkProxyHost(req) ?? "",
+          process.env.CLERK_PUBLISHABLE_KEY,
+        ),
+      })),
+    );
   }
   ```
 - [ ] **Step 6 — Manual check:** with no keys + `NODE_ENV=development`, `curl /api/users/me` returns a user (mock). Commit: `feat(api): dev auth fallback when Clerk keys absent`
@@ -88,11 +100,13 @@
 ### Task A3: Frontend dev-auth fallback (Vite alias)
 
 **Files:**
+
 - Create: `artifacts/fauser-platform/src/dev/clerk-mock.tsx`
 - Modify: `artifacts/fauser-platform/vite.config.ts` (dev-only alias)
 - Modify: `artifacts/fauser-platform/src/App.tsx` (tolerate missing key in mock mode)
 
 **Interfaces:**
+
 - `clerk-mock.tsx` exports the symbols pages use: `ClerkProvider`, `useAuth`, `useUser`, `useClerk`, `SignIn`, `SignUp`, `Show`. Mock `useAuth` → `{ isSignedIn: true, isLoaded: true, userId: "dev_user_local", getToken: async()=>null }`; `useUser` → `{ isSignedIn:true, isLoaded:true, user:{ id:"dev_user_local", firstName:"Dev", lastName:"User", primaryEmailAddress:{emailAddress:"dev@local"} } }`.
 
 - [ ] **Step 1 — Implement `clerk-mock.tsx`** with the components/hooks above; `ClerkProvider`/`Show` render `children`; `SignIn`/`SignUp` render a small "dev mode" placeholder.
@@ -106,6 +120,7 @@
 ### Task A4: One-command local dev
 
 **Files:**
+
 - Create: `scripts/dev.mjs` (orchestrator) OR root `package.json` `dev` script using `concurrently`-free child processes.
 - Modify: root `package.json` (add `dev`, `db:start`, `db:stop` scripts), `README.md`.
 
@@ -122,7 +137,7 @@
 **Files:** Modify `artifacts/fauser-platform/vite.config.ts`
 
 - [ ] **Step 1 — Failing check:** `env -u PORT -u BASE_PATH pnpm --filter @workspace/fauser-platform build` currently throws "PORT required".
-- [ ] **Step 2 — Implement:** default at build time — `const port = Number(process.env.PORT ?? 5173)` and `const basePath = process.env.BASE_PATH ?? "/"`; keep `strictPort`/host for serve. Only the dev/preview *server* needs a real PORT; build must not throw.
+- [ ] **Step 2 — Implement:** default at build time — `const port = Number(process.env.PORT ?? 5173)` and `const basePath = process.env.BASE_PATH ?? "/"`; keep `strictPort`/host for serve. Only the dev/preview _server_ needs a real PORT; build must not throw.
 - [ ] **Step 3 — Verify:** `env -u PORT -u BASE_PATH pnpm --filter @workspace/fauser-platform build` succeeds.
 - [ ] **Step 4 — Commit:** `fix(web): build no longer requires PORT/BASE_PATH env`
 
@@ -142,6 +157,7 @@
 ### Task B1: ESLint (flat) + Prettier
 
 **Files:**
+
 - Create: `eslint.config.mjs` (root), add root scripts.
 - Modify: root `package.json` (devDeps: `eslint`, `typescript-eslint`, `@eslint/js`, `eslint-plugin-react-hooks`, `globals`; scripts `lint`, `lint:fix`, `format:check`).
 
@@ -156,6 +172,7 @@
 ### Task B2: Vitest + meaningful tests
 
 **Files:**
+
 - Create: `vitest.config.ts` (root or per-package), add root `test` script.
 - Tests: `lib/api-client-react/src/custom-fetch.test.ts`, `artifacts/api-server/src/lib/crypto.test.ts`, a Zod schema test in `lib/api-zod`, plus the A1/A2 tests already added.
 
