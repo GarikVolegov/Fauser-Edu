@@ -8,6 +8,7 @@ import {
   useListAttendance,
   useGetMe,
   useListUsers,
+  useListSubjects,
 } from "@workspace/api-client-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,6 +52,19 @@ export default function Registro() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const studentId = user?.role === "student" ? user.id : undefined;
+
+  // Teacher add grade dialog state
+  const [isAddGradeOpen, setIsAddGradeOpen] = useState(false);
+  const [newGrade, setNewGrade] = useState({
+    studentId: "",
+    subjectId: "",
+    value: "",
+    type: "orale",
+    description: "",
+    date: new Date().toISOString().split("T")[0],
+  });
+
+  const { data: subjects = [] } = useListSubjects();
 
   const { data: gradesSummary, isLoading: loadingSummary } =
     useGetGradesSummary({ studentId });
@@ -115,6 +129,36 @@ export default function Registro() {
     },
   });
 
+  const createGradeMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const token = await getToken();
+      const r = await fetch("/api/grades", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!r.ok) throw new Error("Errore");
+      return r.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["grades"] });
+      queryClient.invalidateQueries({ queryKey: ["gradesSummary"] });
+      toast({ title: "Voto aggiunto" });
+      setIsAddGradeOpen(false);
+      setNewGrade({
+        studentId: "",
+        subjectId: "",
+        value: "",
+        type: "orale",
+        description: "",
+        date: new Date().toISOString().split("T")[0],
+      });
+    },
+  });
+
   return (
     <div className="space-y-8">
       <div>
@@ -129,8 +173,11 @@ export default function Registro() {
       </div>
 
       {user?.role === "teacher" && (
-        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded text-sm text-emerald-700">
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded text-sm text-emerald-700 flex items-center justify-between">
           Modalità docente: puoi inserire voti, presenze e note di comportamento.
+          <Button size="sm" onClick={() => setIsAddGradeOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Aggiungi voto
+          </Button>
         </div>
       )}
 
@@ -642,6 +689,115 @@ export default function Registro() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Add Grade Dialog for Teachers */}
+      <Dialog open={isAddGradeOpen} onOpenChange={setIsAddGradeOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Aggiungi Voto</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div>
+              <Label>Studente</Label>
+              <Select value={newGrade.studentId} onValueChange={(v) => setNewGrade((g) => ({ ...g, studentId: v }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleziona studente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {students.map((s: any) => (
+                    <SelectItem key={s.id} value={String(s.id)}>
+                      {s.firstName} {s.lastName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Materia</Label>
+              <Select value={newGrade.subjectId} onValueChange={(v) => setNewGrade((g) => ({ ...g, subjectId: v }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleziona materia" />
+                </SelectTrigger>
+                <SelectContent>
+                  {subjects.map((s: any) => (
+                    <SelectItem key={s.id} value={String(s.id)}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Voto</Label>
+                <Input
+                  type="number"
+                  step="0.5"
+                  min="1"
+                  max="10"
+                  value={newGrade.value}
+                  onChange={(e) => setNewGrade((g) => ({ ...g, value: e.target.value }))}
+                  placeholder="es. 7.5"
+                />
+              </div>
+              <div>
+                <Label>Tipo</Label>
+                <Select value={newGrade.type} onValueChange={(v) => setNewGrade((g) => ({ ...g, type: v }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="orale">Orale</SelectItem>
+                    <SelectItem value="scritto">Scritto</SelectItem>
+                    <SelectItem value="pratico">Pratico</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div>
+              <Label>Data</Label>
+              <Input
+                type="date"
+                value={newGrade.date}
+                onChange={(e) => setNewGrade((g) => ({ ...g, date: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label>Descrizione (opzionale)</Label>
+              <Textarea
+                value={newGrade.description}
+                onChange={(e) => setNewGrade((g) => ({ ...g, description: e.target.value }))}
+                placeholder="Commento sul voto..."
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setIsAddGradeOpen(false)}>
+              Annulla
+            </Button>
+            <Button
+              onClick={() =>
+                createGradeMutation.mutate({
+                  studentId: parseInt(newGrade.studentId),
+                  subjectId: parseInt(newGrade.subjectId),
+                  value: parseFloat(newGrade.value),
+                  type: newGrade.type,
+                  description: newGrade.description || null,
+                  date: newGrade.date,
+                })
+              }
+              disabled={
+                !newGrade.studentId ||
+                !newGrade.subjectId ||
+                !newGrade.value ||
+                createGradeMutation.isPending
+              }
+            >
+              Salva voto
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
