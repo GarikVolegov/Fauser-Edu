@@ -43,6 +43,7 @@ import {
   Plus,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { RoleGuard } from "@/components/RoleGuard";
 
 export default function Admin() {
   const { data: user } = useGetMe();
@@ -73,22 +74,6 @@ export default function Admin() {
   });
   const [studentSearch, setStudentSearch] = useState("");
 
-  if (user && user.role !== "admin") {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Card className="max-w-md w-full border-destructive/20 bg-destructive/5">
-          <CardContent className="pt-6 flex flex-col items-center text-center">
-            <ShieldCheck className="w-12 h-12 text-destructive mb-4" />
-            <h2 className="text-xl font-bold mb-2">Accesso Negato</h2>
-            <p className="text-muted-foreground">
-              Questa area è riservata esclusivamente ai tecnici (ruolo admin).
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   const filteredStudents = students.filter(
     (s: any) =>
       s.firstName?.toLowerCase().includes(studentSearch.toLowerCase()) ||
@@ -99,17 +84,18 @@ export default function Admin() {
   );
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
-          <ShieldCheck className="h-8 w-8" /> Amministrazione (Tecnici)
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Pannello di controllo riservato ai tecnici. La segreteria ha la propria interfaccia dedicata.
-        </p>
-      </div>
+    <RoleGuard allowedRoles={["admin"]}>
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
+            <ShieldCheck className="h-8 w-8" /> Amministrazione (Tecnici)
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Pannello di controllo riservato ai tecnici. La segreteria ha la propria interfaccia dedicata.
+          </p>
+        </div>
 
-      <Tabs defaultValue="panoramica" className="w-full">
+        <Tabs defaultValue="panoramica" className="w-full">
         <TabsList className="grid grid-cols-2 md:grid-cols-4 w-full md:max-w-2xl mb-8">
           <TabsTrigger value="panoramica">Panoramica</TabsTrigger>
           <TabsTrigger value="classi">Classi</TabsTrigger>
@@ -355,6 +341,7 @@ export default function Admin() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </RoleGuard>
   );
 }
