@@ -5,12 +5,12 @@ import { Link, Redirect } from "wouter";
 
 export default function TeacherDashboard() {
   const { data: me } = useGetMe();
+  const { data: assignments = [] } = useListAssignments();
+  const { data: classes = [] } = useListClasses();
+
   if (me && me.role !== "teacher") {
     return <Redirect to="/dashboard" />;
   }
-
-  const { data: assignments = [] } = useListAssignments();
-  const { data: classes = [] } = useListClasses();
 
   const myClasses = classes.filter((c: any) => c.teacherId === me?.id);
   const pending = assignments.filter((a: any) => new Date(a.dueDate) >= new Date()).length;

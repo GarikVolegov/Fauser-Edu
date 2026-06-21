@@ -6,13 +6,13 @@ import { RoleGuard } from "@/components/RoleGuard";
 
 export default function SegreteriaDashboard() {
   const { data: me } = useGetMe();
-  if (me && me.role !== "segreteria") {
-    return <Redirect to="/dashboard" />;
-  }
-
   const { data: students = [] } = useListUsers({ role: "student" } as any);
   const { data: teachers = [] } = useListUsers({ role: "teacher" } as any);
   const { data: classes = [] } = useListClasses();
+
+  if (me && me.role !== "segreteria") {
+    return <Redirect to="/dashboard" />;
+  }
 
   return (
     <div className="space-y-8">
