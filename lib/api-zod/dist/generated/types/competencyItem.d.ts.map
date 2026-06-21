@@ -1,1 +1,0 @@
-{"version":3,"file":"competencyItem.d.ts","sourceRoot":"","sources":["../../../src/generated/types/competencyItem.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AAEH,MAAM,WAAW,cAAc;IAC7B,EAAE,EAAE,MAAM,CAAC;IACX,SAAS,EAAE,MAAM,CAAC;IAClB,WAAW,EAAE,MAAM,CAAC;IACpB,IAAI,EAAE,MAAM,CAAC;IACb,WAAW,CAAC,EAAE,MAAM,GAAG,IAAI,CAAC;IAC5B,SAAS,EAAE,MAAM,CAAC;CACnB"}

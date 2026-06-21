@@ -1,1 +1,0 @@
-{"version":3,"file":"attendanceUpdate.d.ts","sourceRoot":"","sources":["../../../src/generated/types/attendanceUpdate.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AACH,OAAO,KAAK,EAAE,sBAAsB,EAAE,MAAM,0BAA0B,CAAC;AAEvE,MAAM,WAAW,gBAAgB;IAC/B,MAAM,CAAC,EAAE,sBAAsB,CAAC;IAChC,gBAAgB;IAChB,IAAI,CAAC,EAAE,MAAM,GAAG,IAAI,CAAC;CACtB"}
