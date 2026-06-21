@@ -25,7 +25,7 @@ export const GetMeResponse = zod.object({
   "email": zod.string(),
   "firstName": zod.string(),
   "lastName": zod.string(),
-  "role": zod.enum(['student', 'teacher', 'admin']),
+  "role": zod.enum(['student', 'teacher', 'segreteria', 'admin']),
   "indirizzo": zod.string().nullish(),
   "classId": zod.number().nullish(),
   "createdAt": zod.string()
@@ -47,7 +47,7 @@ export const UpdateMeResponse = zod.object({
   "email": zod.string(),
   "firstName": zod.string(),
   "lastName": zod.string(),
-  "role": zod.enum(['student', 'teacher', 'admin']),
+  "role": zod.enum(['student', 'teacher', 'segreteria', 'admin']),
   "indirizzo": zod.string().nullish(),
   "classId": zod.number().nullish(),
   "createdAt": zod.string()
@@ -58,7 +58,7 @@ export const UpdateMeResponse = zod.object({
  * @summary List all users
  */
 export const ListUsersQueryParams = zod.object({
-  "role": zod.enum(['student', 'teacher', 'admin']).optional(),
+  "role": zod.enum(['student', 'teacher', 'segreteria', 'admin']).optional(),
   "classId": zod.coerce.number().nullish()
 })
 
@@ -68,7 +68,7 @@ export const ListUsersResponseItem = zod.object({
   "email": zod.string(),
   "firstName": zod.string(),
   "lastName": zod.string(),
-  "role": zod.enum(['student', 'teacher', 'admin']),
+  "role": zod.enum(['student', 'teacher', 'segreteria', 'admin']),
   "indirizzo": zod.string().nullish(),
   "classId": zod.number().nullish(),
   "createdAt": zod.string()

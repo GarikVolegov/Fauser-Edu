@@ -90,7 +90,7 @@ export default function Quiz() {
     });
   };
 
-  const isTeacher = user?.role === "admin" || user?.role === "teacher";
+  const isTeacher = user?.role === "admin" || user?.role === "teacher" || user?.role === "segreteria";
 
   if (selectedQuizId) {
     return (

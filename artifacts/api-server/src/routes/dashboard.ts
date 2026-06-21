@@ -20,6 +20,47 @@ router.get("/summary", requireAuth, async (req: any, res: any) => {
     const user = await getOrCreateUser(auth.userId!);
     const today = new Date().toISOString().split("T")[0];
 
+    // Role-aware summary for separate OS experiences
+    if (user.role === "teacher") {
+      // Teacher view: focus on their activity
+      const myAssignments = await db
+        .select()
+        .from(assignmentsTable)
+        .where(eq(assignmentsTable.teacherId, user.id));
+
+      const upcomingEvents = await db
+        .select()
+        .from(eventsTable)
+        .where(gte(eventsTable.startDate, today));
+
+      return res.json({
+        role: "teacher",
+        myAssignmentsCount: myAssignments.length,
+        upcomingEvents: upcomingEvents.length,
+        message: "Benvenuto nel tuo cockpit docente",
+      });
+    }
+
+    if (["segreteria", "admin"].includes(user.role)) {
+      // Management / staff view
+      const allUsers = await db.select().from(
+        (await import("@workspace/db")).usersTable
+      );
+      const pendingJust = await db
+        .select()
+        .from((await import("@workspace/db")).justificationsTable);
+
+      return res.json({
+        role: user.role,
+        totalUsers: allUsers.length,
+        pendingItems: pendingJust.length,
+        message: user.role === "segreteria"
+          ? "Portale Segreteria - gestione operativa"
+          : "Pannello Tecnici",
+      });
+    }
+
+    // Default: student view (existing logic)
     const grades = await db
       .select()
       .from(gradesTable)
@@ -64,6 +105,7 @@ router.get("/summary", requireAuth, async (req: any, res: any) => {
       }));
 
     res.json({
+      role: "student",
       gradeAverage:
         gradeAverage !== null ? Math.round(gradeAverage * 100) / 100 : null,
       totalGrades: grades.length,

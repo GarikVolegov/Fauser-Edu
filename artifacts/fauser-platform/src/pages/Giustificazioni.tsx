@@ -39,7 +39,7 @@ export default function Giustificazioni() {
 
   const { data: justifications = [], isLoading: loadingJust } = useQuery({
     queryKey: ["justifications", studentId],
-    enabled: !!studentId || user?.role === "teacher" || user?.role === "admin",
+    enabled: !!studentId || user?.role === "teacher" || user?.role === "segreteria" || user?.role === "admin",
     queryFn: async () => {
       const token = await getToken();
       const url = studentId

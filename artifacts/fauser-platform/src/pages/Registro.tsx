@@ -43,6 +43,7 @@ import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { ShieldAlert, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { RoleGuard } from "@/components/RoleGuard";
 
 export default function Registro() {
   const { data: user } = useGetMe();
@@ -121,9 +122,17 @@ export default function Registro() {
           Registro Elettronico
         </h1>
         <p className="text-muted-foreground mt-1">
-          Consulta i tuoi voti e le presenze scolastiche.
+          {user?.role === "teacher" || user?.role === "segreteria" || user?.role === "admin"
+            ? "Gestione voti, presenze e note per le classi."
+            : "Consulta i tuoi voti e le presenze scolastiche."}
         </p>
       </div>
+
+      {user?.role === "teacher" && (
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded text-sm text-emerald-700">
+          Modalità docente: puoi inserire voti, presenze e note di comportamento.
+        </div>
+      )}
 
       <Tabs defaultValue="voti" className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-3">
@@ -449,7 +458,8 @@ export default function Registro() {
             <h2 className="text-xl font-bold">
               Note Disciplinari e Riconoscimenti
             </h2>
-            {user?.role === "teacher" && (
+            <RoleGuard allowedRoles={["teacher", "admin"]}>
+              {user?.role === "teacher" && (
               <Dialog
                 open={isNoteDialogOpen}
                 onOpenChange={setIsNoteDialogOpen}
@@ -553,7 +563,8 @@ export default function Registro() {
                   </div>
                 </DialogContent>
               </Dialog>
-            )}
+              )}
+            </RoleGuard>
           </div>
 
           <Card>

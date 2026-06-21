@@ -1,4 +1,4 @@
-import { useGetDashboardSummary } from "@workspace/api-client-react";
+import { useGetMe, useGetDashboardSummary } from "@workspace/api-client-react";
 import {
   Card,
   CardContent,
@@ -18,9 +18,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { motion } from "framer-motion";
+import { Redirect } from "wouter";
+import TeacherDashboard from "./TeacherDashboard";
+import SegreteriaDashboard from "./SegreteriaDashboard";
 
 export default function Dashboard() {
+  const { data: me } = useGetMe();
+  const role = me?.role ?? "student";
+
   const { data: summary, isLoading } = useGetDashboardSummary();
+
+  // Role-based landing for full immersion (hooks called first)
+  if (role === "teacher") {
+    return <TeacherDashboard />;
+  }
+  if (role === "segreteria") {
+    return <SegreteriaDashboard />;
+  }
+  if (role === "admin") {
+    return <Redirect to="/admin" />;
+  }
 
   if (isLoading) {
     return (

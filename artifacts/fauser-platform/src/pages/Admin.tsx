@@ -81,8 +81,7 @@ export default function Admin() {
             <ShieldCheck className="w-12 h-12 text-destructive mb-4" />
             <h2 className="text-xl font-bold mb-2">Accesso Negato</h2>
             <p className="text-muted-foreground">
-              Questa area è riservata esclusivamente agli amministratori della
-              piattaforma.
+              Questa area è riservata esclusivamente ai tecnici (ruolo admin).
             </p>
           </CardContent>
         </Card>
@@ -103,10 +102,10 @@ export default function Admin() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
-          <ShieldCheck className="h-8 w-8" /> Amministrazione
+          <ShieldCheck className="h-8 w-8" /> Amministrazione (Tecnici)
         </h1>
         <p className="text-muted-foreground mt-1">
-          Pannello di controllo della piattaforma.
+          Pannello di controllo riservato ai tecnici. La segreteria ha la propria interfaccia dedicata.
         </p>
       </div>
 

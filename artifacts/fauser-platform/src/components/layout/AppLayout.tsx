@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useUser, useClerk, useAuth } from "@clerk/react";
+import { useGetMe } from "@workspace/api-client-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   LayoutDashboard,
@@ -44,37 +45,56 @@ const timeAgo = (dateStr: string) => {
   return `${Math.floor(diff / 1440)} gg fa`;
 };
 
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/registro", label: "Registro", icon: BookOpen },
-  { href: "/classroom", label: "Classroom", icon: GraduationCap },
-  { href: "/calendario", label: "Calendario", icon: CalendarDays },
-  { href: "/orario", label: "Orario", icon: Clock },
-  { href: "/aule", label: "Aule", icon: Building2 },
-  { href: "/quiz", label: "Quiz", icon: ClipboardList },
-  { href: "/diario", label: "Diario", icon: BookOpen },
-  { href: "/portfolio", label: "Portfolio", icon: Award },
-  { href: "/forum", label: "Forum", icon: MessageSquare },
-  { href: "/sondaggi", label: "Sondaggi", icon: BarChart3 },
-  { href: "/uscite", label: "Uscite", icon: MapPin },
-  { href: "/comunicazioni", label: "Comunicazioni", icon: Bell },
-  { href: "/messaggi", label: "Messaggi", icon: MessageSquare },
-  { href: "/giustificazioni", label: "Giustificazioni", icon: FileCheck2 },
-  { href: "/colloqui", label: "Colloqui", icon: CalendarCheck2 },
-  { href: "/libreria", label: "Libreria", icon: Library },
-  { href: "/tutoraggio", label: "Tutoraggio", icon: Users2 },
-  { href: "/certificati", label: "Certificati", icon: FileText },
-  { href: "/analytics", label: "Analytics", icon: TrendingUp },
-  { href: "/profilo", label: "Profilo", icon: UserCircle },
+const allNavItems = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["student", "teacher", "segreteria", "admin"] as const },
+  { href: "/registro", label: "Registro", icon: BookOpen, roles: ["student", "teacher"] as const },
+  { href: "/classroom", label: "Classroom", icon: GraduationCap, roles: ["student", "teacher"] as const },
+  { href: "/calendario", label: "Calendario", icon: CalendarDays, roles: ["student", "teacher", "segreteria"] as const },
+  { href: "/orario", label: "Orario", icon: Clock, roles: ["student", "teacher", "segreteria"] as const },
+  { href: "/aule", label: "Aule", icon: Building2, roles: ["student", "teacher", "segreteria", "admin"] as const },
+  { href: "/quiz", label: "Quiz", icon: ClipboardList, roles: ["student", "teacher"] as const },
+  { href: "/diario", label: "Diario", icon: BookOpen, roles: ["student"] as const },
+  { href: "/portfolio", label: "Portfolio", icon: Award, roles: ["student"] as const },
+  { href: "/forum", label: "Forum", icon: MessageSquare, roles: ["student", "teacher"] as const },
+  { href: "/sondaggi", label: "Sondaggi", icon: BarChart3, roles: ["student", "teacher", "segreteria"] as const },
+  { href: "/uscite", label: "Uscite", icon: MapPin, roles: ["student", "teacher", "segreteria"] as const },
+  { href: "/comunicazioni", label: "Comunicazioni", icon: Bell, roles: ["student", "teacher", "segreteria"] as const },
+  { href: "/messaggi", label: "Messaggi", icon: MessageSquare, roles: ["student", "teacher", "segreteria"] as const },
+  { href: "/giustificazioni", label: "Giustificazioni", icon: FileCheck2, roles: ["student", "teacher", "segreteria"] as const },
+  { href: "/colloqui", label: "Colloqui", icon: CalendarCheck2, roles: ["student", "teacher"] as const },
+  { href: "/libreria", label: "Libreria", icon: Library, roles: ["student", "teacher"] as const },
+  { href: "/tutoraggio", label: "Tutoraggio", icon: Users2, roles: ["student", "teacher"] as const },
+  { href: "/certificati", label: "Certificati", icon: FileText, roles: ["student", "segreteria"] as const },
+  { href: "/analytics", label: "Analytics", icon: TrendingUp, roles: ["student", "teacher", "segreteria", "admin"] as const },
+  { href: "/profilo", label: "Profilo", icon: UserCircle, roles: ["student", "teacher", "segreteria", "admin"] as const },
+  // Teacher specific
+  { href: "/registro", label: "Registro", icon: BookOpen, roles: ["teacher"] as const },
 ];
 
-export function AppLayout({ children }: { children: React.ReactNode }) {
+function getNavForRole(role: string | undefined) {
+  const r = (role as any) || "student";
+  return allNavItems.filter((item) => (item.roles as readonly string[]).includes(r));
+}
+
+export function AppLayout({
+  children,
+  navItems: propNavItems,
+  portalName,
+}: {
+  children: React.ReactNode;
+  navItems?: Array<{ href: string; label: string; icon: any }>;
+  portalName?: string;
+}) {
   const [location] = useLocation();
   const { user } = useUser();
   const { signOut } = useClerk();
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+
+  const { data: me } = useGetMe();
+  const role = me?.role ?? (user?.publicMetadata?.role as string | undefined) ?? "student";
+  const navItems = propNavItems ?? getNavForRole(role);
 
   const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -146,7 +166,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           {item.label}
         </Link>
       ))}
-      {user?.publicMetadata?.role === "admin" && (
+      {role === "admin" && (
         <Link
           href="/admin"
           onClick={() => setOpen(false)}
@@ -160,6 +180,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           Admin
         </Link>
       )}
+      {role === "segreteria" && (
+        <Link
+          href="/segreteria"
+          onClick={() => setOpen(false)}
+          className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors mt-4 ${
+            location === "/segreteria"
+              ? "bg-primary/10 text-primary font-medium"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          }`}
+        >
+          <ShieldCheck className="h-5 w-5" />
+          Segreteria
+        </Link>
+      )}
     </>
   );
 
@@ -170,6 +204,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-2">
           <img src={`${basePath}/logo.svg`} alt="Logo" className="h-8 w-8" />
           <span className="font-bold text-primary">G.Fauser</span>
+          {portalName && <span className="text-[10px] text-muted-foreground ml-1">({portalName})</span>}
         </div>
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
@@ -201,8 +236,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   <div className="font-medium truncate">
                     {user?.firstName} {user?.lastName}
                   </div>
-                  <div className="text-xs text-muted-foreground truncate">
+                  <div className="text-xs text-muted-foreground truncate flex items-center gap-1">
                     {user?.primaryEmailAddress?.emailAddress}
+                    <span className="ml-1 px-1 py-px rounded bg-primary/10 text-primary text-[9px] font-mono uppercase">
+                      {role}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -220,11 +258,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </header>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 border-r bg-card h-screen sticky top-0">
+      <aside className={`hidden md:flex flex-col w-64 border-r h-screen sticky top-0 ${role === 'teacher' ? 'bg-emerald-50' : role === 'segreteria' ? 'bg-amber-50' : role === 'admin' ? 'bg-rose-50' : 'bg-card'}`}>
         <div className="p-6 border-b flex items-center gap-3">
           <img src={`${basePath}/logo.svg`} alt="Logo" className="h-10 w-10" />
-          <div className="font-bold text-xl text-primary tracking-tight">
-            ITT G.Fauser
+          <div>
+            <div className="font-bold text-xl text-primary tracking-tight">
+              ITT G.Fauser
+            </div>
+            {portalName && (
+              <div className="text-[10px] text-muted-foreground -mt-0.5 tracking-wider uppercase">
+                {portalName}
+              </div>
+            )}
           </div>
         </div>
 
@@ -302,8 +347,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <div className="font-medium truncate text-sm">
                 {user?.firstName} {user?.lastName}
               </div>
-              <div className="text-xs text-muted-foreground truncate">
+              <div className="text-xs text-muted-foreground truncate flex items-center gap-1">
                 {user?.primaryEmailAddress?.emailAddress}
+                <span className="ml-1 px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-mono uppercase tracking-wider">
+                  {role}
+                </span>
               </div>
             </div>
           </div>
@@ -320,6 +368,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* Main Content */}
       <main className="flex-1 overflow-x-hidden">
+        {portalName && (
+          <div className="bg-muted/30 border-b px-4 py-1.5 text-sm font-medium text-primary flex items-center gap-2 sticky top-0 z-10">
+            <span className="hidden md:inline">Interfaccia:</span> <span className="font-semibold">{portalName}</span>
+          </div>
+        )}
         <div className="max-w-6xl mx-auto p-4 md:p-8">{children}</div>
       </main>
     </div>

@@ -25,13 +25,16 @@ import { shadcn } from "@clerk/themes";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
+import { DevRoleSwitcher } from "@/dev/DevRoleSwitcher";
 
-import { AppLayout } from "@/components/layout/AppLayout";
+import { RoleWorkspace } from "@/components/layout/RoleWorkspace";
 import Landing from "@/pages/Landing";
 
 // Authenticated pages are code-split: each becomes its own chunk loaded on
 // demand, keeping the initial bundle small. Landing/NotFound stay eager.
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const TeacherDashboard = lazy(() => import("@/pages/TeacherDashboard"));
+const SegreteriaDashboard = lazy(() => import("@/pages/SegreteriaDashboard"));
 const Registro = lazy(() => import("@/pages/Registro"));
 const Classroom = lazy(() => import("@/pages/Classroom"));
 const Calendario = lazy(() => import("@/pages/Calendario"));
@@ -218,9 +221,9 @@ function ProtectedRoute({
   }
 
   return (
-    <AppLayout>
+    <RoleWorkspace>
       <Component />
-    </AppLayout>
+    </RoleWorkspace>
   );
 }
 
@@ -281,6 +284,14 @@ function ClerkProviderWithRoutes() {
 
             <Route path="/dashboard">
               <ProtectedRoute component={Dashboard} />
+            </Route>
+
+            <Route path="/teacher">
+              <ProtectedRoute component={TeacherDashboard} />
+            </Route>
+
+            <Route path="/segreteria">
+              <ProtectedRoute component={SegreteriaDashboard} />
             </Route>
 
             <Route path="/registro">
@@ -371,6 +382,7 @@ function ClerkProviderWithRoutes() {
           </Switch>
         </Suspense>
       </QueryClientProvider>
+      <DevRoleSwitcher />
     </ClerkProvider>
   );
 }

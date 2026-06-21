@@ -88,7 +88,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [student, teacher, admin]
+            enum: [student, teacher, segreteria, admin]
         - name: classId
           in: query
           schema:
@@ -1969,7 +1969,7 @@ components:
           type: string
         role:
           type: string
-          enum: [student, teacher, admin]
+          enum: [student, teacher, segreteria, admin]
         indirizzo:
           type: ["string", "null"]
         classId:
