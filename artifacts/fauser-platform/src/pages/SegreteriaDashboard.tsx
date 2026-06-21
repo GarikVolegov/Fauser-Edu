@@ -118,7 +118,7 @@ export default function SegreteriaDashboard() {
                 <span className="text-muted-foreground text-xs">{s.email}</span>
               </div>
             ))}
-            {students.length > 5 && <Link href="/admin" className="text-primary text-xs">Vedi tutti in Gestione →</Link>}
+            {students.length > 5 && <span className="text-primary text-xs">Usa Analytics o altre sezioni per gestione completa</span>}
           </CardContent>
         </Card>
 

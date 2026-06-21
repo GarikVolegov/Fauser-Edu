@@ -19,6 +19,13 @@ export default function Orario() {
     user?.classId?.toString(),
   );
 
+  // Role-aware banner for immersion
+  const roleBanner = user?.role === "teacher"
+    ? "Modalità Docente: il tuo orario e quello delle classi"
+    : user?.role === "segreteria" || user?.role === "admin"
+    ? "Modalità Gestione: orario globale e aule"
+    : null;
+
   const { data: classes } = useListClasses();
 
   const { data: schedule, isLoading } = useQuery({
@@ -55,6 +62,11 @@ export default function Orario() {
 
   return (
     <div className="space-y-8">
+      {roleBanner && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
+          {roleBanner}
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
