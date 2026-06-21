@@ -65,9 +65,16 @@ export default function Registro() {
     date: new Date().toISOString().split("T")[0],
   });
 
+  // Deep-link params (e.g. from OggiTeacher "Fai l'appello")
+  const deepLinkParams = new URLSearchParams(
+    typeof window !== "undefined" ? window.location.search : "",
+  );
+  const initialTab = deepLinkParams.get("tab") ?? "voti";
+  const initialClassId = deepLinkParams.get("classId") ?? "";
+
   // Quick attendance (teacher) state
   const [quickAtt, setQuickAtt] = useState({
-    classId: "",
+    classId: initialClassId,
     studentId: "",
     date: new Date().toISOString().split("T")[0],
     status: "presente",
@@ -260,7 +267,7 @@ export default function Registro() {
         </div>
       </RoleGuard>
 
-      <Tabs defaultValue="voti" className="w-full">
+      <Tabs defaultValue={initialTab} className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-3">
           <TabsTrigger value="voti">Voti</TabsTrigger>
           <TabsTrigger value="presenze">Presenze</TabsTrigger>
