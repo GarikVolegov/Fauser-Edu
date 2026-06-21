@@ -7,7 +7,13 @@ import {
   eventsTable,
   announcementsTable,
   subjectsTable,
+  classesTable,
+  scheduleTable,
+  appointmentsTable,
+  justificationsTable,
+  usersTable,
 } from "@workspace/db";
+import { mapTeacherToday, mapStaffToday } from "./dashboardToday";
 import { eq, gte } from "drizzle-orm";
 import { requireAuth, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
@@ -153,6 +159,57 @@ router.get("/upcoming", requireAuth, async (req: any, res: any) => {
     });
   } catch (err) {
     req.log.error({ err }, "Error getting upcoming items");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/today", requireAuth, async (req: any, res: any) => {
+  try {
+    const auth = getAuth(req);
+    const user = await getOrCreateUser(auth.userId!);
+    const now = new Date();
+    const today = now.toISOString().split("T")[0];
+    const dayOfWeek = now.getDay(); // 0=Sun .. 6=Sat (Italian Mon-Fri = 1..5)
+
+    const classes = await db.select().from(classesTable);
+    const classNames = new Map(classes.map((c) => [c.id, c.name]));
+
+    const allUsers = await db.select().from(usersTable);
+    const studentNames = new Map(allUsers.map((u) => [u.id, `${u.firstName} ${u.lastName}`]));
+
+    if (user.role === "teacher") {
+      const schedule = await db.select().from(scheduleTable).where(eq(scheduleTable.teacherId, user.id));
+      const todayAttendance = await db.select().from(attendanceTable).where(eq(attendanceTable.date, today));
+      const assignments = await db.select().from(assignmentsTable).where(eq(assignmentsTable.teacherId, user.id));
+      const appts = await db.select().from(appointmentsTable).where(eq(appointmentsTable.teacherId, user.id));
+      const subjects = await db.select().from(subjectsTable);
+      const subjectNames = new Map(subjects.map((s) => [s.id, s.name]));
+
+      const payload = mapTeacherToday({
+        today, dayOfWeek, schedule, attendance: todayAttendance,
+        assignments, appointments: appts, classNames, subjectNames, studentNames,
+      });
+      return res.json({ role: "teacher", date: today, ...payload });
+    }
+
+    if (["segreteria", "admin"].includes(user.role)) {
+      const pendingJust = await db.select().from(justificationsTable).where(eq(justificationsTable.status, "pending"));
+      const todayAttendance = await db.select().from(attendanceTable).where(eq(attendanceTable.date, today));
+      const schedule = await db.select().from(scheduleTable);
+      const studentClassIds = new Map(allUsers.map((u) => [u.id, u.classId ?? -1]));
+
+      const payload = mapStaffToday({
+        today, dayOfWeek,
+        justifications: pendingJust.map((j) => ({ ...j, createdAt: j.createdAt.toISOString() })),
+        attendance: todayAttendance, schedule, classNames, studentNames, studentClassIds,
+      });
+      return res.json({ role: user.role, date: today, ...payload });
+    }
+
+    // Student keeps using /dashboard/summary; return a light payload here.
+    return res.json({ role: "student", date: today });
+  } catch (err) {
+    req.log.error({ err }, "Error getting today dashboard");
     res.status(500).json({ error: "Internal server error" });
   }
 });
