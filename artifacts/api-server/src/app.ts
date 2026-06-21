@@ -11,6 +11,7 @@ import {
   clerkProxyMiddleware,
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
+import { devAuthMiddleware } from "./middlewares/devAuthMiddleware";
 
 const app: Express = express();
 
@@ -47,14 +48,27 @@ app.get("/api/healthz", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-app.use(
-  clerkMiddleware((req) => ({
-    publishableKey: publishableKeyFromHost(
-      getClerkProxyHost(req) ?? "",
-      process.env.CLERK_PUBLISHABLE_KEY,
-    ),
-  })),
-);
+// In development without Clerk keys, fall back to a mock signed-in user so the
+// app is runnable locally with no secrets. Production (and any env that sets
+// CLERK_SECRET_KEY) always uses the real Clerk middleware — behavior unchanged.
+const useDevAuth =
+  process.env.NODE_ENV === "development" && !process.env.CLERK_SECRET_KEY;
+
+if (useDevAuth) {
+  logger.warn(
+    "DEV AUTH FALLBACK active: all requests run as a mock user (no Clerk keys). Never use in production.",
+  );
+  app.use(devAuthMiddleware);
+} else {
+  app.use(
+    clerkMiddleware((req) => ({
+      publishableKey: publishableKeyFromHost(
+        getClerkProxyHost(req) ?? "",
+        process.env.CLERK_PUBLISHABLE_KEY,
+      ),
+    })),
+  );
+}
 
 app.use("/api", router);
 
