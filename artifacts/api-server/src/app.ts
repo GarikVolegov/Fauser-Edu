@@ -41,6 +41,12 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Public health check — mounted BEFORE auth so deploy/autoscale probes never
+// depend on Clerk configuration. Must stay ahead of clerkMiddleware.
+app.get("/api/healthz", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
 app.use(
   clerkMiddleware((req) => ({
     publishableKey: publishableKeyFromHost(
