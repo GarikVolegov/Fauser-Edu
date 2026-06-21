@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/react";
+import { useGetMe } from "@workspace/api-client-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +19,7 @@ import { it } from "date-fns/locale";
 export default function Aule() {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
+  const { data: me } = useGetMe();
   const [currentDate, setCurrentDate] = useState(
     startOfWeek(new Date(), { weekStartsOn: 1 }),
   );
@@ -82,6 +84,12 @@ export default function Aule() {
   ];
 
   return (
+    <div className="space-y-4">
+      {(me?.role === "segreteria" || me?.role === "admin") && (
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded text-sm text-amber-700">
+          Modalità gestione aule e spazi - riservata a segreteria e tecnici.
+        </div>
+      )}
     <div className="flex h-[calc(100vh-8rem)] bg-card border rounded-lg overflow-hidden shadow-sm">
       {/* Rooms List */}
       <div className="w-80 border-r flex flex-col bg-muted/10">
@@ -229,6 +237,7 @@ export default function Aule() {
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }
