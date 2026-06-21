@@ -6,6 +6,7 @@ description: How to pass enabled/options to Orval-generated query hooks with rea
 In @tanstack/react-query v5, `UseQueryOptions` has `queryKey` as **required**. Passing `{ query: { enabled: false } }` as the second arg to an Orval hook will fail with "queryKey is missing".
 
 **Rule:** Do not pass the second options arg to Orval hooks with a `{ query: { enabled } }` pattern. Instead, either:
+
 1. Omit the second arg entirely (let the hook always run — data will be empty if params are undefined)
 2. Pass the full valid options object with a queryKey
 

@@ -6,11 +6,13 @@ description: Orval-generated mutation hooks must be called directly as hooks, no
 **Rule:** Orval mutation hooks (e.g. `useCreateClass`, `useUpdateGrade`) return a `UseMutationResult` — they ARE the mutation. Do not pass them to another `useMutation`.
 
 Wrong:
+
 ```typescript
 const m = useMutation({ mutationFn: useCreateClass() }); // ERROR
 ```
 
 Correct:
+
 ```typescript
 const createClass = useCreateClass({
   mutation: {
