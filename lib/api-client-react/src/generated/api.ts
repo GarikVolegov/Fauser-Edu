@@ -44,6 +44,7 @@ import type {
   CompetencyItem,
   CreateClassMessageBody,
   DashboardSummary,
+  DashboardToday,
   DiaryEntry,
   DiaryEntryInput,
   EmailAccountConfig,
@@ -2924,6 +2925,83 @@ export function useGetUpcomingItems<TData = Awaited<ReturnType<typeof getUpcomin
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetUpcomingItemsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetDashboardTodayUrl = () => {
+
+
+
+
+  return `/api/dashboard/today`
+}
+
+/**
+ * @summary Role-aware actionable "today" feed for the dashboard header
+ */
+export const getDashboardToday = async ( options?: RequestInit): Promise<DashboardToday> => {
+
+  return customFetch<DashboardToday>(getGetDashboardTodayUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDashboardTodayQueryKey = () => {
+    return [
+    `/api/dashboard/today`
+    ] as const;
+    }
+
+
+export const getGetDashboardTodayQueryOptions = <TData = Awaited<ReturnType<typeof getDashboardToday>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDashboardToday>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDashboardTodayQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDashboardToday>>> = ({ signal }) => getDashboardToday({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDashboardToday>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDashboardTodayQueryResult = NonNullable<Awaited<ReturnType<typeof getDashboardToday>>>
+export type GetDashboardTodayQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Role-aware actionable "today" feed for the dashboard header
+ */
+
+export function useGetDashboardToday<TData = Awaited<ReturnType<typeof getDashboardToday>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDashboardToday>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDashboardTodayQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

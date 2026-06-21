@@ -730,6 +730,19 @@ paths:
               schema:
                 $ref: "#/components/schemas/UpcomingItems"
 
+  /dashboard/today:
+    get:
+      operationId: getDashboardToday
+      tags: [dashboard]
+      summary: Role-aware actionable "today" feed for the dashboard header
+      responses:
+        "200":
+          description: Today feed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardToday"
+
   /quizzes:
     get:
       operationId: listQuizzes
@@ -2532,6 +2545,89 @@ components:
         - upcomingEvents
         - unreadAnnouncements
         - recentGrades
+
+    TodayLesson:
+      type: object
+      properties:
+        scheduleId: { type: integer }
+        classId: { type: integer }
+        className: { type: string }
+        subjectName: { type: string }
+        hour: { type: integer }
+        room: { type: ["string", "null"] }
+        attendanceTaken: { type: boolean }
+      required: [scheduleId, classId, className, subjectName, hour, attendanceTaken]
+
+    TodayAssignment:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        className: { type: string }
+        dueDate: { type: string }
+      required: [id, title, className, dueDate]
+
+    TodayAppointment:
+      type: object
+      properties:
+        id: { type: integer }
+        date: { type: string }
+        timeSlot: { type: string }
+        studentName: { type: string }
+      required: [id, date, timeSlot, studentName]
+
+    PendingJustification:
+      type: object
+      properties:
+        id: { type: integer }
+        studentName: { type: string }
+        className: { type: string }
+        reason: { type: string }
+        createdAt: { type: string }
+      required: [id, studentName, className, reason, createdAt]
+
+    TodayAbsence:
+      type: object
+      properties:
+        studentId: { type: integer }
+        studentName: { type: string }
+        className: { type: string }
+      required: [studentId, studentName, className]
+
+    TodayRoom:
+      type: object
+      properties:
+        room: { type: string }
+        slots: { type: integer }
+        conflict: { type: boolean }
+      required: [room, slots, conflict]
+
+    DashboardToday:
+      type: object
+      properties:
+        role: { type: string }
+        date: { type: string }
+        todayLessons:
+          type: array
+          items: { $ref: "#/components/schemas/TodayLesson" }
+        assignmentsDue:
+          type: array
+          items: { $ref: "#/components/schemas/TodayAssignment" }
+        nextAppointment:
+          oneOf:
+            - $ref: "#/components/schemas/TodayAppointment"
+            - type: "null"
+        pendingJustifications:
+          type: array
+          items: { $ref: "#/components/schemas/PendingJustification" }
+        todayAbsences:
+          type: array
+          items: { $ref: "#/components/schemas/TodayAbsence" }
+        roomsToday:
+          type: array
+          items: { $ref: "#/components/schemas/TodayRoom" }
+        pendingTotal: { type: integer }
+      required: [role, date]
 
     QuizSummary:
       type: object

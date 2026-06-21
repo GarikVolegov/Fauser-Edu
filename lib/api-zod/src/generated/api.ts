@@ -669,6 +669,54 @@ export const GetUpcomingItemsResponse = zod.object({
 
 
 /**
+ * @summary Role-aware actionable "today" feed for the dashboard header
+ */
+export const GetDashboardTodayResponse = zod.object({
+  "role": zod.string(),
+  "date": zod.string(),
+  "todayLessons": zod.array(zod.object({
+  "scheduleId": zod.number(),
+  "classId": zod.number(),
+  "className": zod.string(),
+  "subjectName": zod.string(),
+  "hour": zod.number(),
+  "room": zod.string().nullish(),
+  "attendanceTaken": zod.boolean()
+})).optional(),
+  "assignmentsDue": zod.array(zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "className": zod.string(),
+  "dueDate": zod.string()
+})).optional(),
+  "nextAppointment": zod.union([zod.object({
+  "id": zod.number(),
+  "date": zod.string(),
+  "timeSlot": zod.string(),
+  "studentName": zod.string()
+}),zod.null()]).optional(),
+  "pendingJustifications": zod.array(zod.object({
+  "id": zod.number(),
+  "studentName": zod.string(),
+  "className": zod.string(),
+  "reason": zod.string(),
+  "createdAt": zod.string()
+})).optional(),
+  "todayAbsences": zod.array(zod.object({
+  "studentId": zod.number(),
+  "studentName": zod.string(),
+  "className": zod.string()
+})).optional(),
+  "roomsToday": zod.array(zod.object({
+  "room": zod.string(),
+  "slots": zod.number(),
+  "conflict": zod.boolean()
+})).optional(),
+  "pendingTotal": zod.number().optional()
+})
+
+
+/**
  * @summary List quizzes
  */
 export const ListQuizzesQueryParams = zod.object({

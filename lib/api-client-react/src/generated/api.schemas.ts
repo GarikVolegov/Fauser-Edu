@@ -453,6 +453,63 @@ export interface DashboardSummary {
   recentGrades: Grade[];
 }
 
+export interface TodayLesson {
+  scheduleId: number;
+  classId: number;
+  className: string;
+  subjectName: string;
+  hour: number;
+  /** @nullable */
+  room?: string | null;
+  attendanceTaken: boolean;
+}
+
+export interface TodayAssignment {
+  id: number;
+  title: string;
+  className: string;
+  dueDate: string;
+}
+
+export interface TodayAppointment {
+  id: number;
+  date: string;
+  timeSlot: string;
+  studentName: string;
+}
+
+export interface PendingJustification {
+  id: number;
+  studentName: string;
+  className: string;
+  reason: string;
+  createdAt: string;
+}
+
+export interface TodayAbsence {
+  studentId: number;
+  studentName: string;
+  className: string;
+}
+
+export interface TodayRoom {
+  room: string;
+  slots: number;
+  conflict: boolean;
+}
+
+export interface DashboardToday {
+  role: string;
+  date: string;
+  todayLessons?: TodayLesson[];
+  assignmentsDue?: TodayAssignment[];
+  nextAppointment?: TodayAppointment | null;
+  pendingJustifications?: PendingJustification[];
+  todayAbsences?: TodayAbsence[];
+  roomsToday?: TodayRoom[];
+  pendingTotal?: number;
+}
+
 export interface QuizSummary {
   id: number;
   title: string;
@@ -1025,6 +1082,7 @@ export type ListUsersRole = typeof ListUsersRole[keyof typeof ListUsersRole];
 export const ListUsersRole = {
   student: 'student',
   teacher: 'teacher',
+  segreteria: 'segreteria',
   admin: 'admin',
 } as const;
 
