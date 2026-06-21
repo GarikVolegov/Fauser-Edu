@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { BookOpen, Users, CalendarCheck2, ClipboardList, Clock } from "lucide-react";
 import { Link, Redirect } from "wouter";
+import OggiFeed from "@/components/oggi/OggiFeed";
 
 export default function TeacherDashboard() {
   const { data: me } = useGetMe();
@@ -18,6 +19,7 @@ export default function TeacherDashboard() {
 
   return (
     <div className="space-y-8">
+      <OggiFeed />
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard Docente</h1>
         <p className="text-muted-foreground mt-1">
