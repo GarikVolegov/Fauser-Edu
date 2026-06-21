@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, forumThreadsTable, forumPostsTable, subjectsTable, usersTable } from "@workspace/db";
-import { eq, and, count } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { requireAuth, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
 

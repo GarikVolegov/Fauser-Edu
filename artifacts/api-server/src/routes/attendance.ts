@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { db, attendanceTable, usersTable } from "@workspace/db";
-import { eq, and, count } from "drizzle-orm";
+import { db, attendanceTable } from "@workspace/db";
+import { eq, and } from "drizzle-orm";
 import { requireAuth, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
 import { CreateAttendanceBody, UpdateAttendanceBody, ListAttendanceQueryParams, GetAttendanceSummaryQueryParams } from "@workspace/api-zod";

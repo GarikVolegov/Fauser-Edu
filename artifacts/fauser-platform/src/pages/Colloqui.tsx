@@ -11,8 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format } from "date-fns";
-import { it } from "date-fns/locale";
-import { CalendarCheck2, Check, X, Clock } from "lucide-react";
+import { CalendarCheck2, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 type AppointmentType = {

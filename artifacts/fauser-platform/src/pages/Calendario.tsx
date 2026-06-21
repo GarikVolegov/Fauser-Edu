@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { useListEvents, useGetMe } from "@workspace/api-client-react";
+import { useListEvents } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, isSameDay } from "date-fns";
 import { it } from "date-fns/locale";
-import { Calendar as CalendarIcon, Clock, MapPin } from "lucide-react";
+import { Calendar as CalendarIcon, Clock } from "lucide-react";
 
 export default function Calendario() {
   const [date, setDate] = useState<Date | undefined>(new Date());

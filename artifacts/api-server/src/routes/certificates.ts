@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { db, usersTable, classesTable, gradesTable, attendanceTable, subjectsTable } from "@workspace/db";
+import { db, classesTable, gradesTable, attendanceTable, subjectsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
@@ -9,7 +9,7 @@ const router = Router();
 function generatePdfBytes(lines: string[]): Buffer {
   const pageWidth = 595;
   const pageHeight = 842;
-  let y = pageHeight - 80;
+  const y = pageHeight - 80;
   const margin = 60;
 
   let stream = "";
@@ -17,7 +17,6 @@ function generatePdfBytes(lines: string[]): Buffer {
   stream += "/F1 20 Tf\n";
   stream += `${margin} ${y} Td\n`;
   stream += `(ITT G. Fauser di Novara) Tj\n`;
-  y -= 30;
   stream += "/F1 12 Tf\n";
   stream += `0 -30 Td\n`;
 

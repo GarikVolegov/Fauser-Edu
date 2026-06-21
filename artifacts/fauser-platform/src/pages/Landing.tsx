@@ -4,12 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   ArrowRight, ChevronDown, Laptop, Truck, Plane,
-  Building2, Award, Users, BookOpen, MapPin, Phone, Mail,
+  Building2, Award, BookOpen, MapPin, Phone, Mail,
   CheckCircle, Clock, Briefcase, Star, Globe,
   Cpu, Network, Server, Layers, Anchor, BarChart3, Wrench,
   Zap, Shield, CalendarDays, ClipboardList, Menu, X,
   GraduationCap, ChevronRight, Plus, Minus, TrendingUp,
-  FileText, Bell, MessageSquare, Wifi,
+  FileText, Bell, MessageSquare,
 } from "lucide-react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 

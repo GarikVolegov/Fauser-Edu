@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, TrendingUp, CalendarCheck, ClipboardList, ShieldAlert } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, Legend } from "recharts";
-import { motion } from "framer-motion";
 
 const COLORS = ['#1e3a5f', '#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6'];
 

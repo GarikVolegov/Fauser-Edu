@@ -1,0 +1,11 @@
+# Build output & deps
+**/dist/**
+**/node_modules/**
+**/.vite/**
+**/*.tsbuildinfo
+.dev/**
+# Generated code
+**/generated/**
+# Lockfiles & data
+pnpm-lock.yaml
+*.svg

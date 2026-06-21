@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, FileText, Download, ExternalLink, FileType2, Library as LibraryIcon } from "lucide-react";
+import { Search, FileText, ExternalLink, Library as LibraryIcon } from "lucide-react";
 
 export default function Libreria() {
   const [search, setSearch] = useState("");

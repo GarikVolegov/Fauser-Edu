@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db, assignmentsTable, subjectsTable, classesTable } from "@workspace/db";
-import { eq, and, gte, sql } from "drizzle-orm";
+import { eq, and, gte } from "drizzle-orm";
 import { requireAuth, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
 import { CreateAssignmentBody, UpdateAssignmentBody, ListAssignmentsQueryParams } from "@workspace/api-zod";

@@ -1,4 +1,4 @@
-import { useGetDashboardSummary, getGetDashboardSummaryQueryKey } from "@workspace/api-client-react";
+import { useGetDashboardSummary } from "@workspace/api-client-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Calendar, GraduationCap, Bell, Activity, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";

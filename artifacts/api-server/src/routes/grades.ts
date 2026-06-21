@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { db, gradesTable, subjectsTable, usersTable } from "@workspace/db";
-import { eq, and, avg, min, max, count, sql } from "drizzle-orm";
+import { db, gradesTable, subjectsTable } from "@workspace/db";
+import { eq, and, avg, min, max, count } from "drizzle-orm";
 import { requireAuth, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
 import { CreateGradeBody, UpdateGradeBody, ListGradesQueryParams, GetGradesSummaryQueryParams } from "@workspace/api-zod";
