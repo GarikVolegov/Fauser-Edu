@@ -369,6 +369,11 @@ export default function Registro() {
         </TabsContent>
 
         <TabsContent value="presenze" className="mt-6 space-y-6">
+          {user?.role === "teacher" && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded text-sm text-emerald-700">
+              Modalità docente: usa il tab per consultare e (in futuro) segnare presenze della classe.
+            </div>
+          )}
           <div className="grid gap-4 md:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">
