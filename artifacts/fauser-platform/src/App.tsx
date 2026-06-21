@@ -56,9 +56,14 @@ function stripBase(path: string): string {
   return basePath && path.startsWith(basePath) ? path.slice(basePath.length) || "/" : path;
 }
 
-if (!clerkPubKey) {
+// A real publishable key is mandatory in production. In dev without a key the
+// Vite config aliases `@clerk/react` to a local mock provider that ignores this
+// value, so we fall back to a harmless placeholder to keep types non-null.
+if (!clerkPubKey && import.meta.env.PROD) {
   throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env file');
 }
+
+const effectiveClerkPubKey = clerkPubKey ?? 'pk_test_dev_mock_placeholder';
 
 const clerkAppearance = {
   theme: shadcn,
@@ -193,7 +198,7 @@ function ClerkProviderWithRoutes() {
 
   return (
     <ClerkProvider
-      publishableKey={clerkPubKey}
+      publishableKey={effectiveClerkPubKey}
       proxyUrl={clerkProxyUrl}
       appearance={clerkAppearance}
       signInUrl={`${basePath}/sign-in`}
