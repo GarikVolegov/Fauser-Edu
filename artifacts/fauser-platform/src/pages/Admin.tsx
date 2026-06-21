@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RoleGuard } from "@/components/RoleGuard";
+import OggiFeed from "@/components/oggi/OggiFeed";
 
 export default function Admin() {
   const { data: user } = useGetMe();
@@ -86,6 +87,7 @@ export default function Admin() {
   return (
     <RoleGuard allowedRoles={["admin"]}>
       <div className="space-y-8">
+        <OggiFeed />
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center gap-2">
             <ShieldCheck className="h-8 w-8" /> Amministrazione (Tecnici)

@@ -14,6 +14,7 @@ import {
 import { Users, FileText, AlertCircle, Calendar, Building2, Search } from "lucide-react";
 import { Link, Redirect } from "wouter";
 import { RoleGuard } from "@/components/RoleGuard";
+import OggiFeed from "@/components/oggi/OggiFeed";
 
 export default function SegreteriaDashboard() {
   const { data: me } = useGetMe();
@@ -44,6 +45,7 @@ export default function SegreteriaDashboard() {
 
   return (
     <div className="space-y-8">
+      <OggiFeed />
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Segreteria</h1>
         <p className="text-muted-foreground mt-1">
