@@ -47,3 +47,9 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Local dev (embedded-postgres data, local env)
+.dev/
+.env
+.env.local
+.env.*.local

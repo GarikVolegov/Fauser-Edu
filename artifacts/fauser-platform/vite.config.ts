@@ -63,6 +63,15 @@ export default defineConfig({
     strictPort: true,
     host: "0.0.0.0",
     allowedHosts: true,
+    // Dev-only: forward same-origin /api calls (incl. /api/__clerk) to the
+    // backend API server. In production Replit's application router handles
+    // this routing, so this proxy only affects local `vite dev`.
+    proxy: {
+      "/api": {
+        target: process.env.API_PROXY_TARGET ?? "http://localhost:8080",
+        changeOrigin: true,
+      },
+    },
     fs: {
       strict: true,
     },
