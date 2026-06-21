@@ -104,6 +104,45 @@ export default function SegreteriaDashboard() {
         </Link>
       </div>
 
+      <div className="grid md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" /> Studenti (primi 5)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm space-y-1">
+            {students.slice(0, 5).map((s: any) => (
+              <div key={s.id} className="flex justify-between border-b last:border-0 py-1">
+                <span>{s.firstName} {s.lastName}</span>
+                <span className="text-muted-foreground text-xs">{s.email}</span>
+              </div>
+            ))}
+            {students.length > 5 && <Link href="/admin" className="text-primary text-xs">Vedi tutti in Gestione →</Link>}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" /> Docenti (primi 5)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm space-y-1">
+            {teachers.slice(0, 5).map((t: any) => (
+              <div key={t.id} className="flex justify-between border-b last:border-0 py-1">
+                <span>{t.firstName} {t.lastName}</span>
+                <span className="text-muted-foreground text-xs">{t.email}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="text-xs text-muted-foreground">
+        Per gestione completa utenti e classi, usa le sezioni dedicate (Analytics, Certificati, Aule). La sezione Admin è riservata ai tecnici.
+      </div>
+
       <div className="text-sm text-muted-foreground">
         Navigazione laterale: Utenti & Classi, Orario Globale, Uscite, Sondaggi, Comunicazioni istituzionali.
       </div>
