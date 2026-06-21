@@ -85,6 +85,17 @@ export default defineConfig(async ({ command }) => {
             if (id.includes("@radix-ui")) return "radix-vendor";
           },
         },
+        // Silence the noisy, benign warnings caused by "use client" directives
+        // in shadcn/Radix components (they have no runtime effect in a Vite SPA).
+        onwarn(warning, warn) {
+          if (
+            warning.code === "MODULE_LEVEL_DIRECTIVE" ||
+            warning.code === "SOURCEMAP_ERROR"
+          ) {
+            return;
+          }
+          warn(warning);
+        },
       },
     },
     server: {

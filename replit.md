@@ -4,12 +4,20 @@ Ecosistema scolastico digitale completo per studenti e docenti dell'ITT G.Fauser
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 8080)
+- `pnpm dev` — **one-command local stack**: embedded Postgres + API + web. With
+  no Clerk keys it runs as a mock user (dev only). See `README.md` for details.
+- `pnpm --filter @workspace/api-server run dev` — run only the API server (port 8080)
+- `pnpm run lint` / `pnpm run format:check` — ESLint + Prettier gates
+- `pnpm test` — Vitest unit/integration tests
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string, `SESSION_SECRET` — for email password encryption
+- Required env (production): `DATABASE_URL` — Postgres connection string,
+  `SESSION_SECRET` — for email password encryption, and Clerk keys
+  (`CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `VITE_CLERK_PUBLISHABLE_KEY`).
+- CI (`.github/workflows/ci.yml`) enforces lint + format + typecheck + test +
+  build, and guards against committing build artifacts (`scripts/check-no-dist.mjs`).
 
 ## Stack
 
