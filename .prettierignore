@@ -6,6 +6,7 @@
 .dev/**
 # Generated code
 **/generated/**
+**/.generated/**
 # Lockfiles & data
 pnpm-lock.yaml
 *.svg

@@ -57,7 +57,9 @@ describe("customFetch", () => {
   });
 
   it("setBaseUrl prepends to relative paths but not absolute URLs", async () => {
-    const spy = vi.fn(async () => jsonResponse({ ok: true }));
+    const spy = vi.fn<
+      (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
+    >(async () => jsonResponse({ ok: true }));
     vi.stubGlobal("fetch", spy);
     setBaseUrl("https://api.example.com/");
 
