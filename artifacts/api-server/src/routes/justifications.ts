@@ -6,7 +6,7 @@ import {
   usersTable,
 } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { requireAuth, getOrCreateUser } from "./auth";
+import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
 
 const router = Router();
@@ -77,9 +77,15 @@ router.get("/", requireAuth, async (req: any, res: any) => {
 
 router.post("/", requireAuth, async (req: any, res: any) => {
   try {
+    const auth = getAuth(req);
+    const user = await getOrCreateUser(auth.userId!);
     const { attendanceId, studentId, reason } = req.body;
     if (!attendanceId || !studentId || !reason) {
       return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    if (user.role === "student" && user.id !== parseInt(studentId)) {
+      return res.status(403).json({ error: "Students can only justify their own attendance" });
     }
 
     const existing = await db
@@ -106,10 +112,9 @@ router.post("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.patch("/:id", requireAuth, async (req: any, res: any) => {
+router.patch("/:id", requireRole(["teacher", "segreteria", "admin"]), async (req: any, res: any) => {
   try {
-    const auth = getAuth(req);
-    const user = await getOrCreateUser(auth.userId!);
+    const user = req.user; // from requireRole
     const id = parseInt(req.params.id);
     const { status } = req.body;
 
@@ -119,11 +124,14 @@ router.patch("/:id", requireAuth, async (req: any, res: any) => {
         .json({ error: "Status must be approved or rejected" });
     }
 
-    const [record] = await db
-      .update(justificationsTable)
-      .set({ status, reviewedBy: user.id, reviewedAt: new Date() })
-      .where(eq(justificationsTable.id, id))
-      .returning();
+    const record = await db.transaction(async (tx) => {
+      const [r] = await tx
+        .update(justificationsTable)
+        .set({ status, reviewedBy: user.id, reviewedAt: new Date() })
+        .where(eq(justificationsTable.id, id))
+        .returning();
+      return r;
+    });
 
     res.json(await enrichJustification(record));
   } catch (err) {

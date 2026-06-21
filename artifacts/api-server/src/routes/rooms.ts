@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, roomsTable, roomBookingsTable, usersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { requireAuth, getOrCreateUser } from "./auth";
+import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
 
 const router = Router();
@@ -18,7 +18,7 @@ router.get("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.post("/", requireAuth, async (req: any, res: any) => {
+router.post("/", requireRole(["segreteria", "admin"]), async (req: any, res: any) => {
   try {
     const { name, capacity, type, equipment } = req.body;
     if (!name) return res.status(400).json({ error: "Missing name" });

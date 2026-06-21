@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RoleGuard } from "@/components/RoleGuard";
 import {
   Building2,
   Monitor,
@@ -85,11 +86,11 @@ export default function Aule() {
 
   return (
     <div className="space-y-4">
-      {(me?.role === "segreteria" || me?.role === "admin") && (
+      <RoleGuard allowedRoles={["segreteria", "admin"]}>
         <div className="p-3 bg-amber-50 border border-amber-200 rounded text-sm text-amber-700">
           Modalità gestione aule e spazi - riservata a segreteria e tecnici.
         </div>
-      )}
+      </RoleGuard>
     <div className="flex h-[calc(100vh-8rem)] bg-card border rounded-lg overflow-hidden shadow-sm">
       {/* Rooms List */}
       <div className="w-80 border-r flex flex-col bg-muted/10">

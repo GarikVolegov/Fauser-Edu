@@ -8,11 +8,11 @@ import {
   subjectsTable,
   quizzesTable,
 } from "@workspace/db";
-import { requireAuth } from "./auth";
+import { requireRole } from "./auth";
 
 const router = Router();
 
-router.get("/summary", requireAuth, async (req: any, res: any) => {
+router.get("/summary", requireRole(["teacher", "segreteria", "admin"]), async (req: any, res: any) => {
   try {
     const users = await db.select().from(usersTable);
     const totalStudents = users.filter((u) => u.role === "student").length;

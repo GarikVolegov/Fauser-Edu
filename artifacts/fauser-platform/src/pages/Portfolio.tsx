@@ -22,6 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { Award, GraduationCap, Users } from "lucide-react";
+import { RoleGuard } from "@/components/RoleGuard";
 
 export default function Portfolio() {
   const { data: user } = useGetMe();
@@ -107,7 +108,8 @@ export default function Portfolio() {
             Traccia lo sviluppo delle competenze acquisite.
           </p>
         </div>
-        {isTeacher && (
+        <RoleGuard allowedRoles={["teacher", "admin"]}>
+          {isTeacher && (
           <div className="flex gap-4 items-center">
             <Select
               value={selectedStudentId}
@@ -122,7 +124,8 @@ export default function Portfolio() {
               </SelectContent>
             </Select>
           </div>
-        )}
+          )}
+        </RoleGuard>
       </div>
 
       {!studentIdToFetch && isTeacher ? (
@@ -190,7 +193,8 @@ export default function Portfolio() {
                                 {c.description}
                               </p>
                             </div>
-                            {isTeacher && (
+                            <RoleGuard allowedRoles={["teacher", "admin"]}>
+                              {isTeacher && (
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -198,7 +202,8 @@ export default function Portfolio() {
                               >
                                 Valuta Competenza
                               </Button>
-                            )}
+                              )}
+                            </RoleGuard>
                           </div>
                         ))}
                       </div>

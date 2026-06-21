@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, subjectsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { requireAuth } from "./auth";
+import { requireAuth, requireRole } from "./auth";
 import { CreateSubjectBody, ListSubjectsQueryParams } from "@workspace/api-zod";
 
 const router = Router();
@@ -24,7 +24,7 @@ router.get("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.post("/", requireAuth, async (req: any, res: any) => {
+router.post("/", requireRole(["admin"]), async (req: any, res: any) => {
   try {
     const parsed = CreateSubjectBody.safeParse(req.body);
     if (!parsed.success)

@@ -9,6 +9,7 @@ import {
   useGetMe,
   useListUsers,
   useListSubjects,
+  useListClasses,
 } from "@workspace/api-client-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -64,7 +65,17 @@ export default function Registro() {
     date: new Date().toISOString().split("T")[0],
   });
 
+  // Quick attendance (teacher) state
+  const [quickAtt, setQuickAtt] = useState({
+    classId: "",
+    studentId: "",
+    date: new Date().toISOString().split("T")[0],
+    status: "presente",
+    note: "",
+  });
+
   const { data: subjects = [] } = useListSubjects();
+  const { data: classes = [] } = useListClasses();
 
   const { data: gradesSummary, isLoading: loadingSummary } =
     useGetGradesSummary({ studentId });
@@ -140,7 +151,10 @@ export default function Registro() {
         },
         body: JSON.stringify(data),
       });
-      if (!r.ok) throw new Error("Errore");
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(err.error || "Errore nel salvataggio del voto");
+      }
       return r.json();
     },
     onSuccess: () => {
@@ -157,7 +171,63 @@ export default function Registro() {
         date: new Date().toISOString().split("T")[0],
       });
     },
+    onError: (err: any) => {
+      toast({ title: "Errore", description: err.message || "Impossibile aggiungere il voto", variant: "destructive" as any });
+    },
   });
+
+  // Quick attendance mutation (re-uses pattern from this file)
+  const createAttendanceMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const token = await getToken();
+      const r = await fetch("/api/attendance", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!r.ok) {
+        const err = await r.json().catch(() => ({}));
+        throw new Error(err.error || "Errore nel salvataggio");
+      }
+      return r.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["attendance"] });
+      queryClient.invalidateQueries({ queryKey: ["attendanceSummary"] });
+      toast({ title: "Presenza registrata" });
+      setQuickAtt((prev) => ({
+        ...prev,
+        studentId: "",
+        // keep classId and date for rapid multi-marks
+      }));
+    },
+    onError: (err: any) => {
+      toast({ title: "Errore", description: err.message || "Impossibile registrare", variant: "destructive" as any });
+    },
+  });
+
+  // Helper for quick marks from student list (uses selected class or student's classId)
+  const quickMark = (studentId: number | string, status: string, note?: string) => {
+    const student = students.find((s: any) => String(s.id) === String(studentId));
+    const classIdStr = quickAtt.classId || (student?.classId ? String(student.classId) : "");
+    if (!classIdStr) {
+      toast({
+        title: "Seleziona una classe",
+        description: "Scegli la classe dal selettore per segnare presenze rapide.",
+      });
+      return;
+    }
+    createAttendanceMutation.mutate({
+      studentId: parseInt(String(studentId)),
+      classId: parseInt(classIdStr),
+      date: new Date().toISOString().split("T")[0],
+      status,
+      note: note || null,
+    });
+  };
 
   return (
     <div className="space-y-8">
@@ -172,14 +242,23 @@ export default function Registro() {
         </p>
       </div>
 
-      {user?.role === "teacher" && (
+      <RoleGuard allowedRoles={["teacher"]}>
         <div className="p-3 bg-emerald-50 border border-emerald-200 rounded text-sm text-emerald-700 flex items-center justify-between">
           Modalità docente: puoi inserire voti, presenze e note di comportamento.
-          <Button size="sm" onClick={() => setIsAddGradeOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" /> Aggiungi voto
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={() => {
+              // Simple way to focus presences tab
+              const el = document.querySelector('[value="presenze"]') as HTMLElement | null;
+              if (el) el.click();
+            }}>
+              Segna presenze
+            </Button>
+            <Button size="sm" onClick={() => setIsAddGradeOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" /> Aggiungi voto
+            </Button>
+          </div>
         </div>
-      )}
+      </RoleGuard>
 
       <Tabs defaultValue="voti" className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-3">
@@ -371,9 +450,199 @@ export default function Registro() {
         <TabsContent value="presenze" className="mt-6 space-y-6">
           {user?.role === "teacher" && (
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded text-sm text-emerald-700">
-              Modalità docente: usa il tab per consultare e (in futuro) segnare presenze della classe.
+              Modalità docente: segna presenze rapide qui sotto (o consulta riepilogo).
             </div>
           )}
+
+          <RoleGuard allowedRoles={["teacher"]}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Segna Presenza Rapida</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+                  <div>
+                    <Label>Classe</Label>
+                    <Select
+                      value={quickAtt.classId}
+                      onValueChange={(v) => setQuickAtt((p) => ({ ...p, classId: v }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona classe" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {classes.map((c: any) => (
+                          <SelectItem key={c.id} value={String(c.id)}>
+                            {(c as any).anno}
+                            {(c as any).sezione || ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Studente</Label>
+                    <Select
+                      value={quickAtt.studentId}
+                      onValueChange={(v) => setQuickAtt((p) => ({ ...p, studentId: v }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona studente" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {students.map((s: any) => (
+                          <SelectItem key={s.id} value={String(s.id)}>
+                            {s.firstName} {s.lastName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Data</Label>
+                    <Input
+                      type="date"
+                      value={quickAtt.date}
+                      onChange={(e) => setQuickAtt((p) => ({ ...p, date: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label>Stato</Label>
+                    <Select
+                      value={quickAtt.status}
+                      onValueChange={(v) => setQuickAtt((p) => ({ ...p, status: v }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="presente">Presente</SelectItem>
+                        <SelectItem value="assente">Assente</SelectItem>
+                        <SelectItem value="ritardo">Ritardo</SelectItem>
+                        <SelectItem value="uscita_anticipata">Uscita anticipata</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="md:col-span-2 lg:col-span-1 flex items-end">
+                    <Button
+                      className="w-full"
+                      onClick={() => {
+                        if (!quickAtt.studentId || !quickAtt.classId) return;
+                        createAttendanceMutation.mutate({
+                          studentId: parseInt(quickAtt.studentId),
+                          classId: parseInt(quickAtt.classId),
+                          date: quickAtt.date,
+                          status: quickAtt.status,
+                          note: quickAtt.note || null,
+                        });
+                      }}
+                      disabled={
+                        !quickAtt.studentId ||
+                        !quickAtt.classId ||
+                        createAttendanceMutation?.isPending
+                      }
+                    >
+                      Segna presenza
+                    </Button>
+                  </div>
+                </div>
+                <div>
+                  <Label>Note (opzionale)</Label>
+                  <Input
+                    value={quickAtt.note}
+                    onChange={(e) => setQuickAtt((p) => ({ ...p, note: e.target.value }))}
+                    placeholder="Motivo ritardo / uscita..."
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Usa anche la lista studenti in Note o aggiungi voti nel tab Voti. (classId dallo studente non sempre presente; seleziona classe.)
+                </div>
+              </CardContent>
+            </Card>
+          </RoleGuard>
+
+          {/* Lista studenti con quick actions - arricchimento per prof */}
+          <RoleGuard allowedRoles={["teacher"]}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Lista studenti — Segna presenze rapide</CardTitle>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Classe selezionata: {quickAtt.classId ? `#${quickAtt.classId}` : "nessuna"} — usa il selettore sopra. Clicca per marcare oggi. {quickAtt.classId ? "(filtrata per classe)" : ""}
+                </p>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const filtered = quickAtt.classId 
+                    ? students.filter((s: any) => String(s.classId || '') === quickAtt.classId)
+                    : students;
+                  if (filtered.length === 0) {
+                    return <p className="text-sm text-muted-foreground">Nessuno studente disponibile per la classe selezionata.</p>;
+                  }
+                  return (
+                    <div className="space-y-2 max-h-[320px] overflow-auto pr-1">
+                      {filtered.slice(0, 20).map((s: any) => {
+                        const studentClass = s.classId ? ` (cl. ${s.classId})` : "";
+                        const isPending = createAttendanceMutation.isPending;
+                        return (
+                          <div
+                            key={s.id}
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border rounded-md p-2 hover:bg-muted/30"
+                          >
+                            <div className="text-sm font-medium">
+                              {s.firstName} {s.lastName}
+                              <span className="text-muted-foreground ml-1 text-xs">{studentClass}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-2 text-xs"
+                                disabled={isPending}
+                                onClick={() => quickMark(s.id, "presente")}
+                              >
+                                ✓ Pres.
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-2 text-xs"
+                                disabled={isPending}
+                                onClick={() => quickMark(s.id, "assente")}
+                              >
+                                ✗ Ass.
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-2 text-xs"
+                                disabled={isPending}
+                                onClick={() => quickMark(s.id, "ritardo")}
+                              >
+                                ⏱ Rit.
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-2 text-xs"
+                                disabled={isPending}
+                                onClick={() => quickMark(s.id, "uscita_anticipata")}
+                              >
+                                🚪 Usc.
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {filtered.length > 20 && (
+                        <div className="text-[10px] text-muted-foreground text-center pt-1">Mostrati i primi 20. Usa il form sopra per altri.</div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+          </RoleGuard>
+
           <div className="grid gap-4 md:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">

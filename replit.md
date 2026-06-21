@@ -6,7 +6,7 @@ Ecosistema scolastico digitale completo per studenti e docenti dell'ITT G.Fauser
 
 - `pnpm dev` — **one-command local stack**: embedded Postgres + API + web. With
   no Clerk keys it runs as a mock user (dev only). See `README.md` for details.
-- `pnpm --filter @workspace/api-server run dev` — run only the API server (port 8080)
+- `pnpm db:start && pnpm --filter @workspace/api-server run dev` — run only the API server (after starting embedded DB; uses PORT=8080 / DATABASE_URL defaults or your env)
 - `pnpm run lint` / `pnpm run format:check` — ESLint + Prettier gates
 - `pnpm test` — Vitest unit/integration tests
 - `pnpm run typecheck` — full typecheck across all packages

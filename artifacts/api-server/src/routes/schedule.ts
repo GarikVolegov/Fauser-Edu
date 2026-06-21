@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, scheduleTable, subjectsTable, usersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { requireAuth } from "./auth";
+import { requireAuth, requireRole } from "./auth";
 
 const router = Router();
 
@@ -36,7 +36,7 @@ router.get("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.post("/", requireAuth, async (req: any, res: any) => {
+router.post("/", requireRole(["segreteria", "admin"]), async (req: any, res: any) => {
   try {
     const { classId, dayOfWeek, hour, subjectId, teacherId, room } = req.body;
     if (!classId || !dayOfWeek || !hour || !subjectId || !teacherId) {
@@ -88,7 +88,7 @@ router.post("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.delete("/:id", requireAuth, async (req: any, res: any) => {
+router.delete("/:id", requireRole(["segreteria", "admin"]), async (req: any, res: any) => {
   try {
     const id = parseInt(req.params.id);
     await db.delete(scheduleTable).where(eq(scheduleTable.id, id));

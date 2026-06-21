@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { RoleGuard } from "@/components/RoleGuard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format, isAfter } from "date-fns";
 import { it } from "date-fns/locale";
@@ -54,7 +55,8 @@ export default function Classroom() {
           </p>
         </div>
 
-        {isTeacher && (
+        <RoleGuard allowedRoles={["teacher"]}>
+          {isTeacher && (
           <div className="flex gap-2">
             <Button size="sm">
               <Plus className="mr-2 h-4 w-4" />
@@ -65,7 +67,8 @@ export default function Classroom() {
               Carica Materiale
             </Button>
           </div>
-        )}
+          )}
+        </RoleGuard>
       </div>
 
       <Tabs defaultValue="compiti" className="w-full">

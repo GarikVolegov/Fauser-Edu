@@ -10,7 +10,7 @@ import {
   classesTable,
 } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { requireAuth, getOrCreateUser } from "./auth";
+import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
 
 const router = Router();
@@ -78,7 +78,7 @@ router.get("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.post("/", requireAuth, async (req: any, res: any) => {
+router.post("/", requireRole(["teacher", "admin"]), async (req: any, res: any) => {
   try {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);
@@ -155,7 +155,7 @@ router.get("/:id", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.patch("/:id", requireAuth, async (req: any, res: any) => {
+router.patch("/:id", requireRole(["teacher", "admin"]), async (req: any, res: any) => {
   try {
     const id = parseInt(req.params.id);
     const { status } = req.body;
@@ -171,7 +171,7 @@ router.patch("/:id", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.post("/:id/questions", requireAuth, async (req: any, res: any) => {
+router.post("/:id/questions", requireRole(["teacher", "admin"]), async (req: any, res: any) => {
   try {
     const quizId = parseInt(req.params.id);
     const {

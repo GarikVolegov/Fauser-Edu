@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, gradesTable, subjectsTable } from "@workspace/db";
 import { eq, and, avg, min, max, count } from "drizzle-orm";
-import { requireAuth, getOrCreateUser } from "./auth";
+import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
 import {
   CreateGradeBody,
@@ -99,22 +99,24 @@ router.get("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.post("/", requireAuth, async (req: any, res: any) => {
+router.post("/", requireRole(["teacher", "admin"]), async (req: any, res: any) => {
   try {
-    const auth = getAuth(req);
-    const user = await getOrCreateUser(auth.userId!);
+    const user = req.user;
     const parsed = CreateGradeBody.safeParse(req.body);
     if (!parsed.success)
       return res.status(400).json({ error: "Invalid input" });
 
-    const [grade] = await db
-      .insert(gradesTable)
-      .values({
-        ...parsed.data,
-        value: String(parsed.data.value),
-        teacherId: user.id,
-      })
-      .returning();
+    const grade = await db.transaction(async (tx) => {
+      const [g] = await tx
+        .insert(gradesTable)
+        .values({
+          ...parsed.data,
+          value: String(parsed.data.value),
+          teacherId: user.id,
+        })
+        .returning();
+      return g;
+    });
 
     const subjects = await db
       .select()
@@ -134,7 +136,7 @@ router.post("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.patch("/:id", requireAuth, async (req: any, res: any) => {
+router.patch("/:id", requireRole(["teacher", "admin"]), async (req: any, res: any) => {
   try {
     const id = parseInt(req.params.id);
     const parsed = UpdateGradeBody.safeParse(req.body);
@@ -167,7 +169,7 @@ router.patch("/:id", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.delete("/:id", requireAuth, async (req: any, res: any) => {
+router.delete("/:id", requireRole(["teacher", "admin"]), async (req: any, res: any) => {
   try {
     const id = parseInt(req.params.id);
     await db.delete(gradesTable).where(eq(gradesTable.id, id));

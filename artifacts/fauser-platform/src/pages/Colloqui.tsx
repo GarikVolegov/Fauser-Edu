@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import { CalendarCheck2, Check, X } from "lucide-react";
+import { RoleGuard } from "@/components/RoleGuard";
 import { useToast } from "@/hooks/use-toast";
 
 type AppointmentType = {
@@ -352,7 +353,8 @@ export default function Colloqui() {
                       </p>
                     )}
 
-                    {user?.role === "teacher" && app.status === "requested" && (
+                    <RoleGuard allowedRoles={["teacher", "admin"]}>
+                      {app.status === "requested" && (
                       <div className="flex gap-2 mt-4">
                         <Button
                           size="sm"
@@ -383,7 +385,8 @@ export default function Colloqui() {
                           <X className="w-4 h-4 mr-1" /> Annulla
                         </Button>
                       </div>
-                    )}
+                      )}
+                    </RoleGuard>
                     {user?.role === "student" && app.status === "requested" && (
                       <Button
                         size="sm"

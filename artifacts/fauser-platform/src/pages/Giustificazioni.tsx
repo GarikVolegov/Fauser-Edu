@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { RoleGuard } from "@/components/RoleGuard";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { FileCheck2, AlertCircle, CheckCircle2, Clock } from "lucide-react";
@@ -272,11 +273,13 @@ export default function Giustificazioni() {
                           </Badge>
                         )}
                       </div>
-                      {user?.role !== "student" && just.studentName && (
-                        <p className="text-sm font-medium">
-                          Studente: {just.studentName}
-                        </p>
-                      )}
+                      <RoleGuard allowedRoles={["teacher", "segreteria", "admin"]} fallback={null}>
+                        {just.studentName && (
+                          <p className="text-sm font-medium">
+                            Studente: {just.studentName}
+                          </p>
+                        )}
+                      </RoleGuard>
                       <p className="text-sm text-muted-foreground bg-muted p-2 rounded-md italic">
                         "{just.reason}"
                       </p>
@@ -289,36 +292,38 @@ export default function Giustificazioni() {
                       )}
                     </div>
 
-                    {user?.role !== "student" && just.status === "pending" && (
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          className="border-green-200 text-green-700 hover:bg-green-50"
-                          onClick={() =>
-                            updateStatus.mutate({
-                              id: just.id,
-                              status: "approved",
-                            })
-                          }
-                          disabled={updateStatus.isPending}
-                        >
-                          Approva
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="border-red-200 text-red-700 hover:bg-red-50"
-                          onClick={() =>
-                            updateStatus.mutate({
-                              id: just.id,
-                              status: "rejected",
-                            })
-                          }
-                          disabled={updateStatus.isPending}
-                        >
-                          Rifiuta
-                        </Button>
-                      </div>
-                    )}
+                    <RoleGuard allowedRoles={["teacher", "segreteria", "admin"]}>
+                      {just.status === "pending" && (
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            className="border-green-200 text-green-700 hover:bg-green-50"
+                            onClick={() =>
+                              updateStatus.mutate({
+                                id: just.id,
+                                status: "approved",
+                              })
+                            }
+                            disabled={updateStatus.isPending}
+                          >
+                            Approva
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="border-red-200 text-red-700 hover:bg-red-50"
+                            onClick={() =>
+                              updateStatus.mutate({
+                                id: just.id,
+                                status: "rejected",
+                              })
+                            }
+                            disabled={updateStatus.isPending}
+                          >
+                            Rifiuta
+                          </Button>
+                        </div>
+                      )}
+                    </RoleGuard>
                   </CardContent>
                 </Card>
               ))}

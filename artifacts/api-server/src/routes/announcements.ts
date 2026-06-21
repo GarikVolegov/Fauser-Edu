@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, announcementsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { requireAuth, getOrCreateUser } from "./auth";
+import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
 import { CreateAnnouncementBody } from "@workspace/api-zod";
 
@@ -23,7 +23,7 @@ router.get("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.post("/", requireAuth, async (req: any, res: any) => {
+router.post("/", requireRole(["teacher", "segreteria", "admin"]), async (req: any, res: any) => {
   try {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);

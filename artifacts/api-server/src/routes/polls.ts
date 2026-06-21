@@ -7,7 +7,7 @@ import {
   usersTable,
 } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { requireAuth, getOrCreateUser } from "./auth";
+import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
 
 const router = Router();
@@ -55,7 +55,7 @@ router.get("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.post("/", requireAuth, async (req: any, res: any) => {
+router.post("/", requireRole(["teacher", "segreteria", "admin"]), async (req: any, res: any) => {
   try {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);
@@ -130,7 +130,7 @@ router.post("/:id/vote", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.patch("/:id", requireAuth, async (req: any, res: any) => {
+router.patch("/:id", requireRole(["teacher", "segreteria", "admin"]), async (req: any, res: any) => {
   try {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);

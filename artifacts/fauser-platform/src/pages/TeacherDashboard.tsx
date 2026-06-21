@@ -1,5 +1,6 @@
 import { useGetMe, useListAssignments, useListClasses } from "@workspace/api-client-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { BookOpen, Users, CalendarCheck2, ClipboardList, Clock } from "lucide-react";
 import { Link, Redirect } from "wouter";
 
@@ -75,6 +76,27 @@ export default function TeacherDashboard() {
             </CardHeader>
           </Card>
         </Link>
+      </div>
+
+      <div>
+        <div className="text-sm font-medium mb-2 text-muted-foreground">Azioni rapide</div>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/registro">
+            <Button variant="secondary" size="sm" className="gap-1">
+              <BookOpen className="h-4 w-4" /> Apri Registro (Presenze)
+            </Button>
+          </Link>
+          <Link href="/quiz">
+            <Button variant="secondary" size="sm" className="gap-1">
+              <ClipboardList className="h-4 w-4" /> Crea Quiz veloce
+            </Button>
+          </Link>
+          <Link href="/comunicazioni">
+            <Button variant="secondary" size="sm" className="gap-1">
+              <Users className="h-4 w-4" /> Invia comunicazione
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">

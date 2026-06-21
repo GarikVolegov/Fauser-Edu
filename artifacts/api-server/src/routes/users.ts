@@ -24,12 +24,14 @@ router.get("/me", requireAuth, async (req: any, res: any) => {
 router.patch("/me", requireAuth, async (req: any, res: any) => {
   try {
     const parsed = UpdateMeBody.safeParse(req.body);
-    if (!parsed.success)
+    if (!parsed.success && !req.body.role)
       return res.status(400).json({ error: "Invalid input" });
+
+    const updateData = { ... (parsed.success ? parsed.data : {}), ...(req.body.role ? { role: req.body.role } : {}) };
 
     const [updated] = await db
       .update(usersTable)
-      .set(parsed.data)
+      .set(updateData)
       .where(eq(usersTable.clerkId, req.clerkId))
       .returning();
 

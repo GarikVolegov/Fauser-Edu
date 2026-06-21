@@ -6,7 +6,7 @@ import {
   notificationsTable,
 } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { requireAuth, getOrCreateUser } from "./auth";
+import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
 
 const router = Router();
@@ -132,7 +132,7 @@ router.post("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.patch("/:id", requireAuth, async (req: any, res: any) => {
+router.patch("/:id", requireRole(["teacher", "segreteria", "admin"]), async (req: any, res: any) => {
   try {
     const id = parseInt(req.params.id);
     const { status } = req.body;

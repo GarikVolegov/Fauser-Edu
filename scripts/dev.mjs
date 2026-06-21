@@ -74,14 +74,17 @@ function waitFor(child, re, timeoutMs = 30000) {
       () => reject(new Error("timeout waiting for readiness")),
       timeoutMs,
     );
-    for (const stream of [child.stdout, child.stderr]) {
-      readline.createInterface({ input: stream }).on("line", (line) => {
-        if (re.test(line)) {
-          clearTimeout(timer);
-          resolve();
-        }
-      });
-    }
+    const onData = (chunk) => {
+      const text = chunk.toString();
+      if (re.test(text)) {
+        clearTimeout(timer);
+        child.stdout.off("data", onData);
+        child.stderr.off("data", onData);
+        resolve();
+      }
+    };
+    child.stdout.on("data", onData);
+    child.stderr.on("data", onData);
   });
 }
 
@@ -98,6 +101,16 @@ process.on("SIGTERM", () => shutdown(0));
 
 // --- main --------------------------------------------------------------
 async function main() {
+  // Kill any stale listeners on our ports (helps with "server spento" / EADDRINUSE from previous runs)
+  const portsToClean = [Number(API_PORT), Number(WEB_PORT), DB_PORT];
+  for (const p of portsToClean) {
+    try {
+      const { execSync } = await import("node:child_process");
+      execSync(`lsof -ti :${p} | xargs kill -9 2>/dev/null || true`, { stdio: "ignore" });
+    } catch (_e) { /* ignore port kill errors */ }
+  }
+  await new Promise((r) => setTimeout(r, 300)); // give OS time to release ports
+
   // 1) Database
   if (await portOpen(DB_PORT)) {
     console.log(`[dev] Postgres already up on :${DB_PORT} — reusing it.`);
@@ -138,7 +151,7 @@ async function main() {
     NODE_ENV: "development",
     PORT: WEB_PORT,
     BASE_PATH,
-    API_PROXY_TARGET: `http://localhost:${API_PORT}`,
+    API_PROXY_TARGET: `http://127.0.0.1:${API_PORT}`,
   };
   const web = spawn(
     "pnpm",
@@ -166,9 +179,18 @@ async function main() {
     });
   }
 
+  // Wait for both to actually be ready before declaring success (prevents opening browser too early)
+  await Promise.all([
+    waitFor(api, /Server listening/, 30000),
+    waitFor(web, /ready in|Local:/, 30000),
+  ]);
+
   console.log(
-    `\n[dev] API → http://localhost:${API_PORT}  |  Web → http://localhost:${WEB_PORT}\n` +
-      `[dev] No Clerk keys? Both tiers run as a mock user. Ctrl-C to stop.\n`,
+    `\n[dev] ✅ Server pronti!` +
+      `\n[dev]    Web (apri questa):  http://localhost:${WEB_PORT}` +
+      `\n[dev]    Oppure prova:       http://127.0.0.1:${WEB_PORT}` +
+      `\n[dev]    API:                http://localhost:${API_PORT}` +
+      `\n[dev] No Clerk keys? Both tiers run as a mock user. Ctrl-C to stop.\n`,
   );
 }
 

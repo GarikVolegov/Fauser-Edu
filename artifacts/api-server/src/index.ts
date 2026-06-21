@@ -5,7 +5,8 @@ const rawPort = process.env["PORT"];
 
 if (!rawPort) {
   throw new Error(
-    "PORT environment variable is required but was not provided.",
+    "PORT environment variable is required but was not provided. " +
+      "Run from repo root with `pnpm dev` (recommended), or `PORT=8080 pnpm --filter @workspace/api-server run dev`.",
   );
 }
 

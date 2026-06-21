@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RoleGuard } from "@/components/RoleGuard";
 
 export default function Orario() {
   const { data: user } = useGetMe();
@@ -22,8 +23,6 @@ export default function Orario() {
   // Role-aware banner for immersion
   const roleBanner = user?.role === "teacher"
     ? "Modalità Docente: il tuo orario e quello delle classi"
-    : user?.role === "segreteria" || user?.role === "admin"
-    ? "Modalità Gestione: orario globale e aule"
     : null;
 
   const { data: classes } = useListClasses();
@@ -67,6 +66,12 @@ export default function Orario() {
           {roleBanner}
         </div>
       )}
+
+      <RoleGuard allowedRoles={["segreteria", "admin"]}>
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded text-sm text-amber-700">
+          Modalità Gestione: orario globale e aule
+        </div>
+      </RoleGuard>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
@@ -76,7 +81,7 @@ export default function Orario() {
             Consulta l'orario settimanale.
           </p>
         </div>
-        {user?.role === "admin" || user?.role === "teacher" ? (
+        <RoleGuard allowedRoles={["teacher", "segreteria", "admin"]}>
           <Select value={selectedClass} onValueChange={setSelectedClass}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Seleziona classe" />
@@ -90,7 +95,7 @@ export default function Orario() {
               ))}
             </SelectContent>
           </Select>
-        ) : null}
+        </RoleGuard>
       </div>
 
       <Card className="overflow-hidden">

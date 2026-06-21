@@ -381,8 +381,8 @@ function ClerkProviderWithRoutes() {
             <Route component={NotFound} />
           </Switch>
         </Suspense>
+        <DevRoleSwitcher />
       </QueryClientProvider>
-      <DevRoleSwitcher />
     </ClerkProvider>
   );
 }

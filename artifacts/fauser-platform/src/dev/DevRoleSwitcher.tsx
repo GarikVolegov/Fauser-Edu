@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -20,6 +21,7 @@ const ROLES = [
 export function DevRoleSwitcher() {
   const { data: me } = useGetMe();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [isSwitching, setIsSwitching] = useState(false);
 
   // Only show in development (when no real Clerk key or NODE_ENV=development)
@@ -38,7 +40,7 @@ export function DevRoleSwitcher() {
     setIsSwitching(true);
     try {
       // Direct fetch because in dev the mock auth works without token
-      const res = await fetch("/api/me", {
+      const res = await fetch("/api/users/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role: newRole }),
@@ -50,10 +52,10 @@ export function DevRoleSwitcher() {
       }
 
       // Invalidate so RoleWorkspace, nav, dashboards re-render with new role
-      await queryClient.invalidateQueries({ queryKey: ["me"] });
+      await queryClient.invalidateQueries({ queryKey: ["/api/users/me"] as const });
       // Navigate to the role's home so you immediately see the new interface
       // (no full reload needed thanks to React state)
-      window.location.href = "/dashboard";
+      setLocation("/dashboard");
     } catch (e) {
       console.error("Role switch error", e);
     } finally {

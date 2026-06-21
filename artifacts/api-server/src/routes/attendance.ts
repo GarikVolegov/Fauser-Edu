@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, attendanceTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { requireAuth, getOrCreateUser } from "./auth";
+import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
 import {
   CreateAttendanceBody,
@@ -89,15 +89,18 @@ router.get("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.post("/", requireAuth, async (req: any, res: any) => {
+router.post("/", requireRole(["teacher", "segreteria", "admin"]), async (req: any, res: any) => {
   try {
     const parsed = CreateAttendanceBody.safeParse(req.body);
     if (!parsed.success)
       return res.status(400).json({ error: "Invalid input" });
-    const [record] = await db
-      .insert(attendanceTable)
-      .values(parsed.data)
-      .returning();
+    const record = await db.transaction(async (tx) => {
+      const [r] = await tx
+        .insert(attendanceTable)
+        .values(parsed.data)
+        .returning();
+      return r;
+    });
     res
       .status(201)
       .json({ ...record, createdAt: record.createdAt.toISOString() });
@@ -107,7 +110,7 @@ router.post("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.patch("/:id", requireAuth, async (req: any, res: any) => {
+router.patch("/:id", requireRole(["teacher", "segreteria", "admin"]), async (req: any, res: any) => {
   try {
     const id = parseInt(req.params.id);
     const parsed = UpdateAttendanceBody.safeParse(req.body);

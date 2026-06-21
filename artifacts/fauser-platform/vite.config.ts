@@ -12,7 +12,8 @@ export default defineConfig(async ({ command }) => {
   const rawPort = process.env.PORT;
   if (isServe && !rawPort) {
     throw new Error(
-      "PORT environment variable is required to run the dev/preview server.",
+      "PORT environment variable is required to run the dev/preview server. " +
+        "Run from repo root with `pnpm dev`, or `PORT=3100 pnpm --filter @workspace/fauser-platform dev`.",
     );
   }
   const port = rawPort ? Number(rawPort) : 5173;
@@ -108,7 +109,7 @@ export default defineConfig(async ({ command }) => {
       // this routing, so this proxy only affects local `vite dev`.
       proxy: {
         "/api": {
-          target: process.env.API_PROXY_TARGET ?? "http://localhost:8080",
+          target: process.env.API_PROXY_TARGET ?? "http://127.0.0.1:8080",
           changeOrigin: true,
         },
       },

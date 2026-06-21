@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, classesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { requireAuth } from "./auth";
+import { requireAuth, requireRole } from "./auth";
 import { CreateClassBody, UpdateClassBody } from "@workspace/api-zod";
 
 const router = Router();
@@ -18,7 +18,7 @@ router.get("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.post("/", requireAuth, async (req: any, res: any) => {
+router.post("/", requireRole(["admin"]), async (req: any, res: any) => {
   try {
     const parsed = CreateClassBody.safeParse(req.body);
     if (!parsed.success)
@@ -47,7 +47,7 @@ router.get("/:id", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.patch("/:id", requireAuth, async (req: any, res: any) => {
+router.patch("/:id", requireRole(["admin"]), async (req: any, res: any) => {
   try {
     const id = parseInt(req.params.id);
     const parsed = UpdateClassBody.safeParse(req.body);
@@ -65,7 +65,7 @@ router.patch("/:id", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.delete("/:id", requireAuth, async (req: any, res: any) => {
+router.delete("/:id", requireRole(["admin"]), async (req: any, res: any) => {
   try {
     const id = parseInt(req.params.id);
     await db.delete(classesTable).where(eq(classesTable.id, id));

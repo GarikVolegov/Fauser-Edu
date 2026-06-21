@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@clerk/react";
 import { useGetMe, useListGrades } from "@workspace/api-client-react";
+import { RoleGuard } from "@/components/RoleGuard";
 import {
   Card,
   CardContent,
@@ -14,7 +15,6 @@ import {
   TrendingUp,
   CalendarCheck,
   ClipboardList,
-  ShieldAlert,
 } from "lucide-react";
 import {
   BarChart,
@@ -47,7 +47,7 @@ export default function Analytics() {
 
   const { data: summary, isLoading: summaryLoading } = useQuery({
     queryKey: ["analytics-summary"],
-    enabled: user?.role === "admin" || user?.role === "teacher",
+    enabled: user?.role === "admin" || user?.role === "teacher" || user?.role === "segreteria",
     queryFn: async () => {
       const token = await getToken();
       const r = await fetch("/api/analytics/summary", {
@@ -73,24 +73,7 @@ export default function Analytics() {
       </div>
     );
 
-  if (user?.role !== "admin" && user?.role !== "teacher") {
-    return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <Card className="w-full max-w-md text-center border-dashed">
-          <CardContent className="pt-10 pb-10 flex flex-col items-center">
-            <div className="h-16 w-16 bg-destructive/10 text-destructive rounded-full flex items-center justify-center mb-6">
-              <ShieldAlert className="h-8 w-8" />
-            </div>
-            <CardTitle className="text-2xl mb-2">Accesso Riservato</CardTitle>
-            <CardDescription className="text-base">
-              La dashboard analytics è riservata a docenti e personale
-              amministrativo.
-            </CardDescription>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+
 
   // Mock data for charts since API might not return proper aggregations yet
   const barData = [
@@ -151,6 +134,7 @@ export default function Analytics() {
   );
 
   return (
+    <RoleGuard allowedRoles={["teacher", "segreteria", "admin"]}>
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Analytics</h1>
@@ -362,5 +346,6 @@ export default function Analytics() {
         </Card>
       </div>
     </div>
+    </RoleGuard>
   );
 }

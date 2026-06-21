@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RoleGuard } from "@/components/RoleGuard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
@@ -111,7 +112,8 @@ export default function Quiz() {
             Gestisci e partecipa ai quiz della classe.
           </p>
         </div>
-        {isTeacher && (
+        <RoleGuard allowedRoles={["teacher", "segreteria", "admin"]}>
+          {isTeacher && (
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -180,7 +182,8 @@ export default function Quiz() {
               </form>
             </DialogContent>
           </Dialog>
-        )}
+          )}
+        </RoleGuard>
       </div>
 
       <Tabs defaultValue="attivi">

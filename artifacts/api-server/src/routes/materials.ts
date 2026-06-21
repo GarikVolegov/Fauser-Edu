@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, materialsTable, subjectsTable, classesTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { requireAuth, getOrCreateUser } from "./auth";
+import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
 import {
   CreateMaterialBody,
@@ -57,7 +57,7 @@ router.get("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.post("/", requireAuth, async (req: any, res: any) => {
+router.post("/", requireRole(["teacher", "admin"]), async (req: any, res: any) => {
   try {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);
@@ -80,7 +80,7 @@ router.post("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.delete("/:id", requireAuth, async (req: any, res: any) => {
+router.delete("/:id", requireRole(["teacher", "admin"]), async (req: any, res: any) => {
   try {
     const id = parseInt(req.params.id);
     await db.delete(materialsTable).where(eq(materialsTable.id, id));
