@@ -8,7 +8,10 @@
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --filter \"./scripts\" --if-present run typecheck",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "dev": "node scripts/dev.mjs",
+    "db:start": "node scripts/dev-db.mjs start",
+    "db:stop": "node scripts/dev-db.mjs stop"
   },
   "private": true,
   "devDependencies": {
