@@ -3,6 +3,7 @@ import { db, behaviorNotesTable, usersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
+import { resolveStudentScope, parseId } from "../lib/requestHelpers";
 
 const router = Router();
 
@@ -35,16 +36,13 @@ router.get("/", requireAuth, async (req: any, res: any) => {
     const user = await getOrCreateUser(auth.userId!);
     const filters: any[] = [];
 
-    if (req.query.studentId) {
-      filters.push(
-        eq(
-          behaviorNotesTable.studentId,
-          parseInt(req.query.studentId as string),
-        ),
-      );
-    } else if (user.role === "student") {
-      filters.push(eq(behaviorNotesTable.studentId, user.id));
-    }
+    const requestedStudentId =
+      typeof req.query.studentId === "string"
+        ? parseId(req.query.studentId)
+        : undefined;
+    const scoped = resolveStudentScope(user, requestedStudentId ?? undefined);
+    if (scoped !== undefined)
+      filters.push(eq(behaviorNotesTable.studentId, scoped));
 
     const records =
       filters.length > 0
@@ -85,8 +83,14 @@ router.post("/", requireRole(["teacher", "admin"]), async (req: any, res: any) =
 
 router.delete("/:id", requireRole(["teacher", "admin"]), async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
-    await db.delete(behaviorNotesTable).where(eq(behaviorNotesTable.id, id));
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
+    const deleted = await db
+      .delete(behaviorNotesTable)
+      .where(eq(behaviorNotesTable.id, id))
+      .returning();
+    if (deleted.length === 0)
+      return res.status(404).json({ error: "Not found" });
     res.status(204).send();
   } catch (err) {
     req.log.error({ err }, "Error deleting behavior note");
