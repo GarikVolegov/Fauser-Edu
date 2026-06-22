@@ -3,6 +3,7 @@ import { db, notificationsTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireAuth, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
+import { parseId } from "../lib/requestHelpers";
 
 const router = Router();
 
@@ -30,13 +31,21 @@ router.get("/", requireAuth, async (req: any, res: any) => {
 
 router.patch("/:id/read", requireAuth, async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
+    const auth = getAuth(req);
+    const user = await getOrCreateUser(auth.userId!);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
     const [record] = await db
       .update(notificationsTable)
       .set({ read: true })
-      .where(eq(notificationsTable.id, id))
+      .where(
+        and(
+          eq(notificationsTable.id, id),
+          eq(notificationsTable.userId, user.id),
+        ),
+      )
       .returning();
-
+    if (!record) return res.status(404).json({ error: "Not found" });
     res.json({ ...record, createdAt: record.createdAt.toISOString() });
   } catch (err) {
     req.log.error({ err }, "Error marking notification read");
