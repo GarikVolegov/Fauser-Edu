@@ -28,6 +28,7 @@ import NotFound from "@/pages/not-found";
 import { DevRoleSwitcher } from "@/dev/DevRoleSwitcher";
 
 import { RoleWorkspace } from "@/components/layout/RoleWorkspace";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Landing from "@/pages/Landing";
 
 // Authenticated pages are code-split: each becomes its own chunk loaded on
@@ -241,7 +242,7 @@ function HomeRedirect() {
 }
 
 function ClerkProviderWithRoutes() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
 
   return (
     <ClerkProvider
@@ -269,118 +270,120 @@ function ClerkProviderWithRoutes() {
     >
       <QueryClientProvider client={queryClient}>
         <ClerkQueryClientCacheInvalidator />
-        <Suspense
-          fallback={
-            <div className="min-h-screen flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          }
-        >
-          <Switch>
-            <Route path="/" component={HomeRedirect} />
+        <ErrorBoundary resetKey={location}>
+          <Suspense
+            fallback={
+              <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            }
+          >
+            <Switch>
+              <Route path="/" component={HomeRedirect} />
 
-            <Route path="/sign-in/*?" component={SignInPage} />
-            <Route path="/sign-up/*?" component={SignUpPage} />
+              <Route path="/sign-in/*?" component={SignInPage} />
+              <Route path="/sign-up/*?" component={SignUpPage} />
 
-            <Route path="/dashboard">
-              <ProtectedRoute component={Dashboard} />
-            </Route>
+              <Route path="/dashboard">
+                <ProtectedRoute component={Dashboard} />
+              </Route>
 
-            <Route path="/teacher">
-              <ProtectedRoute component={TeacherDashboard} />
-            </Route>
+              <Route path="/teacher">
+                <ProtectedRoute component={TeacherDashboard} />
+              </Route>
 
-            <Route path="/segreteria">
-              <ProtectedRoute component={SegreteriaDashboard} />
-            </Route>
+              <Route path="/segreteria">
+                <ProtectedRoute component={SegreteriaDashboard} />
+              </Route>
 
-            <Route path="/registro">
-              <ProtectedRoute component={Registro} />
-            </Route>
+              <Route path="/registro">
+                <ProtectedRoute component={Registro} />
+              </Route>
 
-            <Route path="/classroom">
-              <ProtectedRoute component={Classroom} />
-            </Route>
+              <Route path="/classroom">
+                <ProtectedRoute component={Classroom} />
+              </Route>
 
-            <Route path="/calendario">
-              <ProtectedRoute component={Calendario} />
-            </Route>
+              <Route path="/calendario">
+                <ProtectedRoute component={Calendario} />
+              </Route>
 
-            <Route path="/comunicazioni">
-              <ProtectedRoute component={Comunicazioni} />
-            </Route>
+              <Route path="/comunicazioni">
+                <ProtectedRoute component={Comunicazioni} />
+              </Route>
 
-            <Route path="/messaggi">
-              <ProtectedRoute component={Messaggi} />
-            </Route>
+              <Route path="/messaggi">
+                <ProtectedRoute component={Messaggi} />
+              </Route>
 
-            <Route path="/orario">
-              <ProtectedRoute component={Orario} />
-            </Route>
+              <Route path="/orario">
+                <ProtectedRoute component={Orario} />
+              </Route>
 
-            <Route path="/giustificazioni">
-              <ProtectedRoute component={Giustificazioni} />
-            </Route>
+              <Route path="/giustificazioni">
+                <ProtectedRoute component={Giustificazioni} />
+              </Route>
 
-            <Route path="/colloqui">
-              <ProtectedRoute component={Colloqui} />
-            </Route>
+              <Route path="/colloqui">
+                <ProtectedRoute component={Colloqui} />
+              </Route>
 
-            <Route path="/libreria">
-              <ProtectedRoute component={Libreria} />
-            </Route>
+              <Route path="/libreria">
+                <ProtectedRoute component={Libreria} />
+              </Route>
 
-            <Route path="/tutoraggio">
-              <ProtectedRoute component={Tutoraggio} />
-            </Route>
+              <Route path="/tutoraggio">
+                <ProtectedRoute component={Tutoraggio} />
+              </Route>
 
-            <Route path="/profilo">
-              <ProtectedRoute component={Profilo} />
-            </Route>
+              <Route path="/profilo">
+                <ProtectedRoute component={Profilo} />
+              </Route>
 
-            <Route path="/admin">
-              <ProtectedRoute component={Admin} />
-            </Route>
+              <Route path="/admin">
+                <ProtectedRoute component={Admin} />
+              </Route>
 
-            <Route path="/quiz">
-              <ProtectedRoute component={Quiz} />
-            </Route>
+              <Route path="/quiz">
+                <ProtectedRoute component={Quiz} />
+              </Route>
 
-            <Route path="/diario">
-              <ProtectedRoute component={Diario} />
-            </Route>
+              <Route path="/diario">
+                <ProtectedRoute component={Diario} />
+              </Route>
 
-            <Route path="/portfolio">
-              <ProtectedRoute component={Portfolio} />
-            </Route>
+              <Route path="/portfolio">
+                <ProtectedRoute component={Portfolio} />
+              </Route>
 
-            <Route path="/forum">
-              <ProtectedRoute component={Forum} />
-            </Route>
+              <Route path="/forum">
+                <ProtectedRoute component={Forum} />
+              </Route>
 
-            <Route path="/sondaggi">
-              <ProtectedRoute component={Sondaggi} />
-            </Route>
+              <Route path="/sondaggi">
+                <ProtectedRoute component={Sondaggi} />
+              </Route>
 
-            <Route path="/uscite">
-              <ProtectedRoute component={UsciteDidattiche} />
-            </Route>
+              <Route path="/uscite">
+                <ProtectedRoute component={UsciteDidattiche} />
+              </Route>
 
-            <Route path="/aule">
-              <ProtectedRoute component={Aule} />
-            </Route>
+              <Route path="/aule">
+                <ProtectedRoute component={Aule} />
+              </Route>
 
-            <Route path="/certificati">
-              <ProtectedRoute component={Certificati} />
-            </Route>
+              <Route path="/certificati">
+                <ProtectedRoute component={Certificati} />
+              </Route>
 
-            <Route path="/analytics">
-              <ProtectedRoute component={Analytics} />
-            </Route>
+              <Route path="/analytics">
+                <ProtectedRoute component={Analytics} />
+              </Route>
 
-            <Route component={NotFound} />
-          </Switch>
-        </Suspense>
+              <Route component={NotFound} />
+            </Switch>
+          </Suspense>
+        </ErrorBoundary>
         <DevRoleSwitcher />
       </QueryClientProvider>
     </ClerkProvider>
@@ -389,12 +392,14 @@ function ClerkProviderWithRoutes() {
 
 function App() {
   return (
-    <TooltipProvider>
-      <WouterRouter base={basePath}>
-        <ClerkProviderWithRoutes />
-      </WouterRouter>
-      <Toaster />
-    </TooltipProvider>
+    <ErrorBoundary>
+      <TooltipProvider>
+        <WouterRouter base={basePath}>
+          <ClerkProviderWithRoutes />
+        </WouterRouter>
+        <Toaster />
+      </TooltipProvider>
+    </ErrorBoundary>
   );
 }
 
