@@ -8,6 +8,7 @@ import {
 import { eq, and } from "drizzle-orm";
 import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
+import { resolveStudentScope, parseId } from "../lib/requestHelpers";
 
 const router = Router();
 
@@ -49,16 +50,13 @@ router.get("/", requireAuth, async (req: any, res: any) => {
     const user = await getOrCreateUser(auth.userId!);
     const filters: any[] = [];
 
-    if (req.query.studentId) {
-      filters.push(
-        eq(
-          justificationsTable.studentId,
-          parseInt(req.query.studentId as string),
-        ),
-      );
-    } else if (user.role === "student") {
-      filters.push(eq(justificationsTable.studentId, user.id));
-    }
+    const requestedStudentId =
+      typeof req.query.studentId === "string"
+        ? parseId(req.query.studentId)
+        : undefined;
+    const scoped = resolveStudentScope(user, requestedStudentId ?? undefined);
+    if (scoped !== undefined)
+      filters.push(eq(justificationsTable.studentId, scoped));
 
     const records =
       filters.length > 0
@@ -115,7 +113,8 @@ router.post("/", requireAuth, async (req: any, res: any) => {
 router.patch("/:id", requireRole(["teacher", "segreteria", "admin"]), async (req: any, res: any) => {
   try {
     const user = req.user; // from requireRole
-    const id = parseInt(req.params.id);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
     const { status } = req.body;
 
     if (!["approved", "rejected"].includes(status)) {
@@ -132,6 +131,8 @@ router.patch("/:id", requireRole(["teacher", "segreteria", "admin"]), async (req
         .returning();
       return r;
     });
+
+    if (!record) return res.status(404).json({ error: "Not found" });
 
     res.json(await enrichJustification(record));
   } catch (err) {
