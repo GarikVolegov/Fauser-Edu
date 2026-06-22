@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@clerk/react";
 import { useGetMe, useListAttendance } from "@workspace/api-client-react";
+import { useApi } from "@/lib/useApi";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,49 +29,40 @@ type JustificationType = {
 
 export default function Giustificazioni() {
   const { data: user } = useGetMe();
-  const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const api = useApi();
   const studentId = user?.role === "student" ? user.id : undefined;
 
-  const { data: attendance = [], isLoading: loadingAtt } = useListAttendance({
+  const { data: attendance = [] } = useListAttendance({
     studentId: studentId,
   });
 
-  const { data: justifications = [], isLoading: loadingJust } = useQuery({
+  const {
+    data: justifications = [],
+    isLoading: loadingJust,
+    isError: justError,
+  } = useQuery<JustificationType[]>({
     queryKey: ["justifications", studentId],
-    enabled: !!studentId || user?.role === "teacher" || user?.role === "segreteria" || user?.role === "admin",
-    queryFn: async () => {
-      const token = await getToken();
-      const url = studentId
-        ? `/api/justifications?studentId=${studentId}`
-        : "/api/justifications";
-      const r = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!r.ok) return [];
-      return r.json() as Promise<JustificationType[]>;
-    },
+    enabled:
+      !!studentId ||
+      user?.role === "teacher" ||
+      user?.role === "segreteria" ||
+      user?.role === "admin",
+    queryFn: () =>
+      api<JustificationType[]>(
+        studentId
+          ? `/api/justifications?studentId=${studentId}`
+          : "/api/justifications",
+      ),
   });
 
   const createJustification = useMutation({
-    mutationFn: async (data: {
+    mutationFn: (data: {
       attendanceId: number;
       studentId: number;
       reason: string;
-    }) => {
-      const token = await getToken();
-      const r = await fetch("/api/justifications", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      if (!r.ok) throw new Error("Errore durante l'invio");
-      return r.json();
-    },
+    }) => api("/api/justifications", { method: "POST", body: data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["justifications"] });
       toast({
@@ -79,28 +70,31 @@ export default function Giustificazioni() {
         description: "La giustificazione è in attesa di approvazione.",
       });
     },
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile inviare la giustificazione.",
+        variant: "destructive",
+      });
+    },
   });
 
   const updateStatus = useMutation({
-    mutationFn: async (data: {
-      id: number;
-      status: "approved" | "rejected";
-    }) => {
-      const token = await getToken();
-      const r = await fetch(`/api/justifications/${data.id}`, {
+    mutationFn: (data: { id: number; status: "approved" | "rejected" }) =>
+      api(`/api/justifications/${data.id}`, {
         method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: data.status }),
-      });
-      if (!r.ok) throw new Error("Errore");
-      return r.json();
-    },
+        body: { status: data.status },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["justifications"] });
       toast({ title: "Stato aggiornato" });
+    },
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile aggiornare lo stato.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -224,7 +218,15 @@ export default function Giustificazioni() {
         )}
 
         <TabsContent value="storico" className="mt-6 space-y-4">
-          {justifications.length === 0 ? (
+          {loadingJust ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Caricamento…
+            </div>
+          ) : justError ? (
+            <div className="text-center py-8 text-destructive">
+              Impossibile caricare le giustificazioni. Riprova più tardi.
+            </div>
+          ) : justifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed rounded-lg bg-muted/10">
               <FileCheck2 className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
               <h3 className="text-lg font-medium">Nessuna giustificazione</h3>
@@ -273,7 +275,10 @@ export default function Giustificazioni() {
                           </Badge>
                         )}
                       </div>
-                      <RoleGuard allowedRoles={["teacher", "segreteria", "admin"]} fallback={null}>
+                      <RoleGuard
+                        allowedRoles={["teacher", "segreteria", "admin"]}
+                        fallback={null}
+                      >
                         {just.studentName && (
                           <p className="text-sm font-medium">
                             Studente: {just.studentName}
@@ -292,7 +297,9 @@ export default function Giustificazioni() {
                       )}
                     </div>
 
-                    <RoleGuard allowedRoles={["teacher", "segreteria", "admin"]}>
+                    <RoleGuard
+                      allowedRoles={["teacher", "segreteria", "admin"]}
+                    >
                       {just.status === "pending" && (
                         <div className="flex gap-2">
                           <Button
