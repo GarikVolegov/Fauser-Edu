@@ -112,3 +112,88 @@ export function mapStaffToday(args: {
 
   return { pendingJustifications, todayAbsences, roomsToday, pendingTotal: pendingJustifications.length };
 }
+
+export type StudentGradeRow = {
+  id: number;
+  subjectId: number;
+  value: string | number;
+  type: string;
+  date: string;
+  description: string | null;
+  createdAt: string;
+};
+export type StudentRecentGrade = {
+  id: number;
+  subjectId: number;
+  value: number;
+  type: string;
+  date: string;
+  description: string | null;
+  subjectName: string;
+  createdAt: string;
+};
+
+export function mapStudentSummary(args: {
+  grades: StudentGradeRow[];
+  attendance: { status: string }[];
+  pendingAssignmentsCount: number;
+  upcomingEventsCount: number;
+  unreadAnnouncementsCount: number;
+  subjectNames: Map<number, string>;
+}): {
+  role: "student";
+  gradeAverage: number | null;
+  totalGrades: number;
+  attendancePercentage: number | null;
+  pendingAssignments: number;
+  upcomingEvents: number;
+  unreadAnnouncements: number;
+  recentGrades: StudentRecentGrade[];
+} {
+  const {
+    grades,
+    attendance,
+    pendingAssignmentsCount,
+    upcomingEventsCount,
+    unreadAnnouncementsCount,
+    subjectNames,
+  } = args;
+
+  const values = grades.map((g) => parseFloat(String(g.value)));
+  const gradeAverage =
+    values.length > 0
+      ? Math.round((values.reduce((s, v) => s + v, 0) / values.length) * 100) /
+        100
+      : null;
+
+  const presenti = attendance.filter((a) => a.status === "presente").length;
+  const attendancePercentage =
+    attendance.length > 0
+      ? Math.round((presenti / attendance.length) * 100)
+      : null;
+
+  const recentGrades: StudentRecentGrade[] = [...grades]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 5)
+    .map((g) => ({
+      id: g.id,
+      subjectId: g.subjectId,
+      value: parseFloat(String(g.value)),
+      type: g.type,
+      date: g.date,
+      description: g.description,
+      subjectName: subjectNames.get(g.subjectId) ?? "Unknown",
+      createdAt: g.createdAt,
+    }));
+
+  return {
+    role: "student",
+    gradeAverage,
+    totalGrades: grades.length,
+    attendancePercentage,
+    pendingAssignments: pendingAssignmentsCount,
+    upcomingEvents: upcomingEventsCount,
+    unreadAnnouncements: unreadAnnouncementsCount,
+    recentGrades,
+  };
+}

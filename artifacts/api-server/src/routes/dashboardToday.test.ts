@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { mapTeacherToday, mapStaffToday } from "./dashboardToday";
+import {
+  mapTeacherToday,
+  mapStaffToday,
+  mapStudentSummary,
+} from "./dashboardToday";
 
 describe("mapTeacherToday", () => {
   it("returns today's lessons sorted by hour with attendanceTaken flag", () => {
@@ -103,5 +107,66 @@ describe("mapStaffToday", () => {
     expect(result.roomsToday.find((r) => r.room === "A1")).toMatchObject({ slots: 2, conflict: true });
     expect(result.roomsToday.find((r) => r.room === "B2")).toMatchObject({ slots: 1, conflict: false });
     expect(result.roomsToday.find((r) => r.room === "C3")).toBeUndefined();
+  });
+});
+
+describe("mapStudentSummary", () => {
+  const subjectNames = new Map([
+    [7, "Informatica"],
+    [8, "Matematica"],
+  ]);
+
+  it("computes rounded average, attendance %, and recent grades (newest first, max 5)", () => {
+    const grades = [
+      { id: 1, subjectId: 7, value: "8", type: "orale", date: "2026-06-01", description: null, createdAt: "2026-06-01T00:00:00.000Z" },
+      { id: 2, subjectId: 8, value: "5", type: "scritto", date: "2026-06-10", description: "verifica", createdAt: "2026-06-10T00:00:00.000Z" },
+      { id: 3, subjectId: 7, value: "7", type: "orale", date: "2026-06-05", description: null, createdAt: "2026-06-05T00:00:00.000Z" },
+    ];
+    const attendance = [
+      { status: "presente" }, { status: "presente" }, { status: "assente" }, { status: "ritardo" },
+    ];
+    const result = mapStudentSummary({
+      grades,
+      attendance,
+      pendingAssignmentsCount: 2,
+      upcomingEventsCount: 1,
+      unreadAnnouncementsCount: 4,
+      subjectNames,
+    });
+    expect(result.role).toBe("student");
+    expect(result.gradeAverage).toBeCloseTo(6.67, 2); // (8+5+7)/3 = 6.6666 → 6.67
+    expect(result.totalGrades).toBe(3);
+    expect(result.attendancePercentage).toBe(50); // 2 presenti / 4
+    expect(result.pendingAssignments).toBe(2);
+    expect(result.upcomingEvents).toBe(1);
+    expect(result.unreadAnnouncements).toBe(4);
+    expect(result.recentGrades.map((g) => g.id)).toEqual([2, 3, 1]); // by date desc
+    expect(result.recentGrades[0]).toMatchObject({ subjectName: "Matematica", value: 5 });
+  });
+
+  it("returns null average and percentage when there is no data", () => {
+    const result = mapStudentSummary({
+      grades: [],
+      attendance: [],
+      pendingAssignmentsCount: 0,
+      upcomingEventsCount: 0,
+      unreadAnnouncementsCount: 0,
+      subjectNames,
+    });
+    expect(result.gradeAverage).toBeNull();
+    expect(result.attendancePercentage).toBeNull();
+    expect(result.recentGrades).toEqual([]);
+  });
+
+  it("caps recentGrades at 5", () => {
+    const grades = Array.from({ length: 7 }, (_, i) => ({
+      id: i + 1, subjectId: 7, value: "6", type: "orale",
+      date: `2026-06-0${i + 1}`, description: null, createdAt: `2026-06-0${i + 1}T00:00:00.000Z`,
+    }));
+    const result = mapStudentSummary({
+      grades, attendance: [], pendingAssignmentsCount: 0,
+      upcomingEventsCount: 0, unreadAnnouncementsCount: 0, subjectNames,
+    });
+    expect(result.recentGrades).toHaveLength(5);
   });
 });
