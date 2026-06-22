@@ -1,25 +1,63 @@
-import { useGetMe, useListAssignments, useListClasses } from "@workspace/api-client-react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import {
+  useGetMe,
+  useListAssignments,
+  useListClasses,
+} from "@workspace/api-client-react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Users, CalendarCheck2, ClipboardList, Clock } from "lucide-react";
+import {
+  BookOpen,
+  Users,
+  CalendarCheck2,
+  ClipboardList,
+  Clock,
+} from "lucide-react";
 import { Link, Redirect } from "wouter";
 import OggiFeed from "@/components/oggi/OggiFeed";
 
+interface TeacherClass {
+  id: number;
+  name?: string | null;
+  anno?: number;
+  sezione?: string | null;
+  teacherId?: number;
+}
+interface TeacherAssignment {
+  id: number;
+  dueDate: string;
+}
+
 export default function TeacherDashboard() {
   const { data: me } = useGetMe();
-  const { data: assignments = [] } = useListAssignments();
-  const { data: classes = [] } = useListClasses();
+  const { data: assignments = [], isError: assignmentsError } =
+    useListAssignments();
+  const { data: classes = [], isError: classesError } = useListClasses();
 
   if (me && me.role !== "teacher") {
     return <Redirect to="/dashboard" />;
   }
 
-  const myClasses = classes.filter((c: any) => c.teacherId === me?.id);
-  const pending = assignments.filter((a: any) => new Date(a.dueDate) >= new Date()).length;
+  const myClasses = (classes as TeacherClass[]).filter(
+    (c) => c.teacherId === me?.id,
+  );
+  const pending = (assignments as TeacherAssignment[]).filter(
+    (a) => new Date(a.dueDate) >= new Date(),
+  ).length;
 
   return (
     <div className="space-y-8">
       <OggiFeed />
+      {(assignmentsError || classesError) && (
+        <div className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+          Alcuni dati del riepilogo non sono stati caricati. Riprova più tardi.
+        </div>
+      )}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard Docente</h1>
         <p className="text-muted-foreground mt-1">
@@ -38,7 +76,9 @@ export default function TeacherDashboard() {
               <BookOpen className="h-8 w-8 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-semibold">{pending} compiti in scadenza</div>
+              <div className="text-2xl font-semibold">
+                {pending} compiti in scadenza
+              </div>
             </CardContent>
           </Card>
         </Link>
@@ -81,7 +121,9 @@ export default function TeacherDashboard() {
       </div>
 
       <div>
-        <div className="text-sm font-medium mb-2 text-muted-foreground">Azioni rapide</div>
+        <div className="text-sm font-medium mb-2 text-muted-foreground">
+          Azioni rapide
+        </div>
         <div className="flex flex-wrap gap-2">
           <Link href="/registro">
             <Button variant="secondary" size="sm" className="gap-1">
@@ -122,22 +164,27 @@ export default function TeacherDashboard() {
           <CardContent className="text-sm">
             {myClasses.length > 0 ? (
               <ul className="list-disc pl-5 space-y-1">
-                {myClasses.slice(0, 4).map((c: any) => (
+                {myClasses.slice(0, 4).map((c) => (
                   <li key={c.id}>{c.name || `${c.anno}${c.sezione}`}</li>
                 ))}
               </ul>
             ) : (
-              <div className="text-muted-foreground">Nessuna classe assegnata al momento.</div>
+              <div className="text-muted-foreground">
+                Nessuna classe assegnata al momento.
+              </div>
             )}
             <div className="mt-3">
-              <Link href="/registro" className="text-primary underline text-sm">Vai al Registro →</Link>
+              <Link href="/registro" className="text-primary underline text-sm">
+                Vai al Registro →
+              </Link>
             </div>
           </CardContent>
         </Card>
       </div>
 
       <div className="text-sm text-muted-foreground">
-        Usa la sidebar per Orario, Materiali, Note comportamento e Forum delle tue classi.
+        Usa la sidebar per Orario, Materiali, Note comportamento e Forum delle
+        tue classi.
       </div>
     </div>
   );
