@@ -26,7 +26,7 @@ export default function Dashboard() {
   const { data: me } = useGetMe();
   const role = me?.role ?? "student";
 
-  const { data: summary, isLoading } = useGetDashboardSummary();
+  const { data: summary, isLoading, isError } = useGetDashboardSummary();
 
   // Role-based landing for full immersion (hooks called first)
   if (role === "teacher") {
@@ -54,6 +54,21 @@ export default function Dashboard() {
         <div className="grid gap-6 md:grid-cols-2">
           <Skeleton className="h-[400px] w-full" />
           <Skeleton className="h-[400px] w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            Dashboard
+          </h1>
+        </div>
+        <div className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+          Non è stato possibile caricare il riepilogo. Riprova più tardi.
         </div>
       </div>
     );
