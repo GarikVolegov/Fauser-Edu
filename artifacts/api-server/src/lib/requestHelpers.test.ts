@@ -16,6 +16,11 @@ describe("resolveStudentScope", () => {
   it("returns undefined (all students) for staff with no requested studentId", () => {
     expect(resolveStudentScope({ id: 1, role: "teacher" }, undefined)).toBeUndefined();
   });
+
+  it("treats a null requested studentId like undefined", () => {
+    expect(resolveStudentScope({ id: 1, role: "teacher" }, null)).toBeUndefined();
+    expect(resolveStudentScope({ id: 5, role: "student" }, null)).toBe(5);
+  });
 });
 
 describe("parseId", () => {

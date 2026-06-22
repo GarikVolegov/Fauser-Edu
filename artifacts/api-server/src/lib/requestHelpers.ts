@@ -12,10 +12,10 @@ export interface ScopeUser {
  */
 export function resolveStudentScope(
   user: ScopeUser,
-  requestedStudentId?: number,
+  requestedStudentId?: number | null,
 ): number | undefined {
   if (user.role === "student") return user.id;
-  return requestedStudentId;
+  return requestedStudentId ?? undefined;
 }
 
 /** Parse a route :id param to a base-10 integer, or null when not numeric. */

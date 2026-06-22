@@ -3,6 +3,7 @@ import { db, gradesTable, subjectsTable } from "@workspace/db";
 import { eq, and, avg, min, max, count } from "drizzle-orm";
 import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
+import { resolveStudentScope, parseId } from "../lib/requestHelpers";
 import {
   CreateGradeBody,
   UpdateGradeBody,
@@ -16,14 +17,9 @@ router.get("/summary", requireAuth, async (req: any, res: any) => {
   try {
     const auth = getAuth(req);
     const parsed = GetGradesSummaryQueryParams.safeParse(req.query);
-    let studentId: number | undefined;
-
-    if (parsed.success && parsed.data.studentId) {
-      studentId = parsed.data.studentId;
-    } else {
-      const user = await getOrCreateUser(auth.userId!);
-      studentId = user.id;
-    }
+    const user = await getOrCreateUser(auth.userId!);
+    const requested = parsed.success ? parsed.data.studentId : undefined;
+    const studentId = resolveStudentScope(user, requested) ?? user.id;
 
     const summaries = await db
       .select({
@@ -64,14 +60,15 @@ router.get("/", requireAuth, async (req: any, res: any) => {
     const filters: any[] = [];
 
     if (parsed.success) {
-      if (parsed.data.studentId)
-        filters.push(eq(gradesTable.studentId, parsed.data.studentId));
-      else if (user.role === "student")
-        filters.push(eq(gradesTable.studentId, user.id));
+      const scoped = resolveStudentScope(user, parsed.data.studentId);
+      if (scoped !== undefined)
+        filters.push(eq(gradesTable.studentId, scoped));
       if (parsed.data.subjectId)
         filters.push(eq(gradesTable.subjectId, parsed.data.subjectId));
-    } else if (user.role === "student") {
-      filters.push(eq(gradesTable.studentId, user.id));
+    } else {
+      const scoped = resolveStudentScope(user, undefined);
+      if (scoped !== undefined)
+        filters.push(eq(gradesTable.studentId, scoped));
     }
 
     const grades =
@@ -138,7 +135,8 @@ router.post("/", requireRole(["teacher", "admin"]), async (req: any, res: any) =
 
 router.patch("/:id", requireRole(["teacher", "admin"]), async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
     const parsed = UpdateGradeBody.safeParse(req.body);
     if (!parsed.success)
       return res.status(400).json({ error: "Invalid input" });
@@ -151,6 +149,7 @@ router.patch("/:id", requireRole(["teacher", "admin"]), async (req: any, res: an
       .set(updateData)
       .where(eq(gradesTable.id, id))
       .returning();
+    if (!grade) return res.status(404).json({ error: "Not found" });
     const subjects = await db
       .select()
       .from(subjectsTable)
@@ -171,8 +170,14 @@ router.patch("/:id", requireRole(["teacher", "admin"]), async (req: any, res: an
 
 router.delete("/:id", requireRole(["teacher", "admin"]), async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
-    await db.delete(gradesTable).where(eq(gradesTable.id, id));
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
+    const deleted = await db
+      .delete(gradesTable)
+      .where(eq(gradesTable.id, id))
+      .returning();
+    if (deleted.length === 0)
+      return res.status(404).json({ error: "Not found" });
     res.status(204).send();
   } catch (err) {
     req.log.error({ err }, "Error deleting grade");
