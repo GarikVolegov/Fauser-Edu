@@ -46,12 +46,24 @@ import { it } from "date-fns/locale";
 import { ShieldAlert, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { RoleGuard } from "@/components/RoleGuard";
+import { useApi } from "@/lib/useApi";
+
+interface BehaviorNote {
+  id: number;
+  studentId: number;
+  type: string;
+  description: string;
+  date: string;
+  studentName?: string;
+  teacherName?: string;
+}
 
 export default function Registro() {
   const { data: user } = useGetMe();
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const api = useApi();
   const studentId = user?.role === "student" ? user.id : undefined;
 
   // Teacher add grade dialog state
@@ -71,6 +83,7 @@ export default function Registro() {
   );
   const initialTab = deepLinkParams.get("tab") ?? "voti";
   const initialClassId = deepLinkParams.get("classId") ?? "";
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   // Quick attendance (teacher) state
   const [quickAtt, setQuickAtt] = useState({
@@ -105,35 +118,28 @@ export default function Registro() {
   });
   const { data: students = [] } = useListUsers({ role: "student" } as any);
 
-  const { data: behaviorNotes = [], isLoading: loadingNotes } = useQuery({
+  const {
+    data: behaviorNotes = [],
+    isLoading: loadingNotes,
+    isError: notesError,
+  } = useQuery<BehaviorNote[]>({
     queryKey: ["behaviorNotes", studentId],
-    queryFn: async () => {
-      const token = await getToken();
-      const url = studentId
-        ? `/api/behavior-notes?studentId=${studentId}`
-        : "/api/behavior-notes";
-      const r = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!r.ok) return [];
-      return r.json();
-    },
+    queryFn: () =>
+      api<BehaviorNote[]>(
+        studentId
+          ? `/api/behavior-notes?studentId=${studentId}`
+          : "/api/behavior-notes",
+      ),
   });
 
   const createNote = useMutation({
-    mutationFn: async (data: any) => {
-      const token = await getToken();
-      const r = await fetch("/api/behavior-notes", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      if (!r.ok) throw new Error("Errore");
-      return r.json();
-    },
+    mutationFn: (data: {
+      studentId: number;
+      teacherId: number;
+      type: string;
+      description: string;
+      date: string;
+    }) => api("/api/behavior-notes", { method: "POST", body: data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["behaviorNotes"] });
       toast({ title: "Nota aggiunta" });
@@ -143,6 +149,13 @@ export default function Registro() {
         type: "nota",
         description: "",
         date: format(new Date(), "yyyy-MM-dd"),
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile aggiungere la nota.",
+        variant: "destructive",
       });
     },
   });
@@ -179,7 +192,11 @@ export default function Registro() {
       });
     },
     onError: (err: any) => {
-      toast({ title: "Errore", description: err.message || "Impossibile aggiungere il voto", variant: "destructive" as any });
+      toast({
+        title: "Errore",
+        description: err.message || "Impossibile aggiungere il voto",
+        variant: "destructive" as any,
+      });
     },
   });
 
@@ -212,18 +229,30 @@ export default function Registro() {
       }));
     },
     onError: (err: any) => {
-      toast({ title: "Errore", description: err.message || "Impossibile registrare", variant: "destructive" as any });
+      toast({
+        title: "Errore",
+        description: err.message || "Impossibile registrare",
+        variant: "destructive" as any,
+      });
     },
   });
 
   // Helper for quick marks from student list (uses selected class or student's classId)
-  const quickMark = (studentId: number | string, status: string, note?: string) => {
-    const student = students.find((s: any) => String(s.id) === String(studentId));
-    const classIdStr = quickAtt.classId || (student?.classId ? String(student.classId) : "");
+  const quickMark = (
+    studentId: number | string,
+    status: string,
+    note?: string,
+  ) => {
+    const student = students.find(
+      (s: any) => String(s.id) === String(studentId),
+    );
+    const classIdStr =
+      quickAtt.classId || (student?.classId ? String(student.classId) : "");
     if (!classIdStr) {
       toast({
         title: "Seleziona una classe",
-        description: "Scegli la classe dal selettore per segnare presenze rapide.",
+        description:
+          "Scegli la classe dal selettore per segnare presenze rapide.",
       });
       return;
     }
@@ -243,7 +272,9 @@ export default function Registro() {
           Registro Elettronico
         </h1>
         <p className="text-muted-foreground mt-1">
-          {user?.role === "teacher" || user?.role === "segreteria" || user?.role === "admin"
+          {user?.role === "teacher" ||
+          user?.role === "segreteria" ||
+          user?.role === "admin"
             ? "Gestione voti, presenze e note per le classi."
             : "Consulta i tuoi voti e le presenze scolastiche."}
         </p>
@@ -251,13 +282,14 @@ export default function Registro() {
 
       <RoleGuard allowedRoles={["teacher"]}>
         <div className="p-3 bg-emerald-50 border border-emerald-200 rounded text-sm text-emerald-700 flex items-center justify-between">
-          Modalità docente: puoi inserire voti, presenze e note di comportamento.
+          Modalità docente: puoi inserire voti, presenze e note di
+          comportamento.
           <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => {
-              // Simple way to focus presences tab
-              const el = document.querySelector('[value="presenze"]') as HTMLElement | null;
-              if (el) el.click();
-            }}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setActiveTab("presenze")}
+            >
               Segna presenze
             </Button>
             <Button size="sm" onClick={() => setIsAddGradeOpen(true)}>
@@ -267,7 +299,7 @@ export default function Registro() {
         </div>
       </RoleGuard>
 
-      <Tabs defaultValue={initialTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-3">
           <TabsTrigger value="voti">Voti</TabsTrigger>
           <TabsTrigger value="presenze">Presenze</TabsTrigger>
@@ -457,14 +489,17 @@ export default function Registro() {
         <TabsContent value="presenze" className="mt-6 space-y-6">
           {user?.role === "teacher" && (
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded text-sm text-emerald-700">
-              Modalità docente: segna presenze rapide qui sotto (o consulta riepilogo).
+              Modalità docente: segna presenze rapide qui sotto (o consulta
+              riepilogo).
             </div>
           )}
 
           <RoleGuard allowedRoles={["teacher"]}>
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Segna Presenza Rapida</CardTitle>
+                <CardTitle className="text-base">
+                  Segna Presenza Rapida
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
@@ -472,7 +507,9 @@ export default function Registro() {
                     <Label>Classe</Label>
                     <Select
                       value={quickAtt.classId}
-                      onValueChange={(v) => setQuickAtt((p) => ({ ...p, classId: v }))}
+                      onValueChange={(v) =>
+                        setQuickAtt((p) => ({ ...p, classId: v }))
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona classe" />
@@ -491,7 +528,9 @@ export default function Registro() {
                     <Label>Studente</Label>
                     <Select
                       value={quickAtt.studentId}
-                      onValueChange={(v) => setQuickAtt((p) => ({ ...p, studentId: v }))}
+                      onValueChange={(v) =>
+                        setQuickAtt((p) => ({ ...p, studentId: v }))
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Seleziona studente" />
@@ -510,14 +549,18 @@ export default function Registro() {
                     <Input
                       type="date"
                       value={quickAtt.date}
-                      onChange={(e) => setQuickAtt((p) => ({ ...p, date: e.target.value }))}
+                      onChange={(e) =>
+                        setQuickAtt((p) => ({ ...p, date: e.target.value }))
+                      }
                     />
                   </div>
                   <div>
                     <Label>Stato</Label>
                     <Select
                       value={quickAtt.status}
-                      onValueChange={(v) => setQuickAtt((p) => ({ ...p, status: v }))}
+                      onValueChange={(v) =>
+                        setQuickAtt((p) => ({ ...p, status: v }))
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -526,7 +569,9 @@ export default function Registro() {
                         <SelectItem value="presente">Presente</SelectItem>
                         <SelectItem value="assente">Assente</SelectItem>
                         <SelectItem value="ritardo">Ritardo</SelectItem>
-                        <SelectItem value="uscita_anticipata">Uscita anticipata</SelectItem>
+                        <SelectItem value="uscita_anticipata">
+                          Uscita anticipata
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -557,12 +602,16 @@ export default function Registro() {
                   <Label>Note (opzionale)</Label>
                   <Input
                     value={quickAtt.note}
-                    onChange={(e) => setQuickAtt((p) => ({ ...p, note: e.target.value }))}
+                    onChange={(e) =>
+                      setQuickAtt((p) => ({ ...p, note: e.target.value }))
+                    }
                     placeholder="Motivo ritardo / uscita..."
                   />
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  Usa anche la lista studenti in Note o aggiungi voti nel tab Voti. (classId dallo studente non sempre presente; seleziona classe.)
+                  Usa anche la lista studenti in Note o aggiungi voti nel tab
+                  Voti. (classId dallo studente non sempre presente; seleziona
+                  classe.)
                 </div>
               </CardContent>
             </Card>
@@ -572,23 +621,37 @@ export default function Registro() {
           <RoleGuard allowedRoles={["teacher"]}>
             <Card>
               <CardHeader>
-                <CardTitle className="text-base">Lista studenti — Segna presenze rapide</CardTitle>
+                <CardTitle className="text-base">
+                  Lista studenti — Segna presenze rapide
+                </CardTitle>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Classe selezionata: {quickAtt.classId ? `#${quickAtt.classId}` : "nessuna"} — usa il selettore sopra. Clicca per marcare oggi. {quickAtt.classId ? "(filtrata per classe)" : ""}
+                  Classe selezionata:{" "}
+                  {quickAtt.classId ? `#${quickAtt.classId}` : "nessuna"} — usa
+                  il selettore sopra. Clicca per marcare oggi.{" "}
+                  {quickAtt.classId ? "(filtrata per classe)" : ""}
                 </p>
               </CardHeader>
               <CardContent>
                 {(() => {
-                  const filtered = quickAtt.classId 
-                    ? students.filter((s: any) => String(s.classId || '') === quickAtt.classId)
+                  const filtered = quickAtt.classId
+                    ? students.filter(
+                        (s: any) =>
+                          String(s.classId || "") === quickAtt.classId,
+                      )
                     : students;
                   if (filtered.length === 0) {
-                    return <p className="text-sm text-muted-foreground">Nessuno studente disponibile per la classe selezionata.</p>;
+                    return (
+                      <p className="text-sm text-muted-foreground">
+                        Nessuno studente disponibile per la classe selezionata.
+                      </p>
+                    );
                   }
                   return (
                     <div className="space-y-2 max-h-[320px] overflow-auto pr-1">
                       {filtered.slice(0, 20).map((s: any) => {
-                        const studentClass = s.classId ? ` (cl. ${s.classId})` : "";
+                        const studentClass = s.classId
+                          ? ` (cl. ${s.classId})`
+                          : "";
                         const isPending = createAttendanceMutation.isPending;
                         return (
                           <div
@@ -597,7 +660,9 @@ export default function Registro() {
                           >
                             <div className="text-sm font-medium">
                               {s.firstName} {s.lastName}
-                              <span className="text-muted-foreground ml-1 text-xs">{studentClass}</span>
+                              <span className="text-muted-foreground ml-1 text-xs">
+                                {studentClass}
+                              </span>
                             </div>
                             <div className="flex flex-wrap gap-1">
                               <Button
@@ -632,7 +697,9 @@ export default function Registro() {
                                 variant="outline"
                                 className="h-7 px-2 text-xs"
                                 disabled={isPending}
-                                onClick={() => quickMark(s.id, "uscita_anticipata")}
+                                onClick={() =>
+                                  quickMark(s.id, "uscita_anticipata")
+                                }
                               >
                                 🚪 Usc.
                               </Button>
@@ -641,7 +708,9 @@ export default function Registro() {
                         );
                       })}
                       {filtered.length > 20 && (
-                        <div className="text-[10px] text-muted-foreground text-center pt-1">Mostrati i primi 20. Usa il form sopra per altri.</div>
+                        <div className="text-[10px] text-muted-foreground text-center pt-1">
+                          Mostrati i primi 20. Usa il form sopra per altri.
+                        </div>
                       )}
                     </div>
                   );
@@ -788,109 +857,109 @@ export default function Registro() {
             </h2>
             <RoleGuard allowedRoles={["teacher", "admin"]}>
               {user?.role === "teacher" && (
-              <Dialog
-                open={isNoteDialogOpen}
-                onOpenChange={setIsNoteDialogOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" /> Aggiungi nota
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Aggiungi nota disciplinare</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="space-y-2">
-                      <Label>Studente</Label>
-                      <Select
-                        value={newNote.studentId}
-                        onValueChange={(v) =>
-                          setNewNote((p) => ({ ...p, studentId: v }))
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleziona studente" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {students.map((s: any) => (
-                            <SelectItem key={s.id} value={s.id.toString()}>
-                              {s.firstName} {s.lastName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Tipo</Label>
-                      <Select
-                        value={newNote.type}
-                        onValueChange={(v) =>
-                          setNewNote((p) => ({ ...p, type: v }))
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="nota">
-                            Nota disciplinare
-                          </SelectItem>
-                          <SelectItem value="sospensione">
-                            Sospensione
-                          </SelectItem>
-                          <SelectItem value="lode">
-                            Lode/Nota di merito
-                          </SelectItem>
-                          <SelectItem value="altro">Altro</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Data</Label>
-                      <Input
-                        type="date"
-                        value={newNote.date}
-                        onChange={(e) =>
-                          setNewNote((p) => ({ ...p, date: e.target.value }))
-                        }
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Descrizione</Label>
-                      <Textarea
-                        value={newNote.description}
-                        onChange={(e) =>
-                          setNewNote((p) => ({
-                            ...p,
-                            description: e.target.value,
-                          }))
-                        }
-                        rows={4}
-                      />
-                    </div>
-                    <Button
-                      onClick={() =>
-                        createNote.mutate({
-                          studentId: parseInt(newNote.studentId),
-                          teacherId: user.id,
-                          type: newNote.type,
-                          description: newNote.description,
-                          date: newNote.date,
-                        })
-                      }
-                      disabled={
-                        !newNote.studentId ||
-                        !newNote.description ||
-                        createNote.isPending
-                      }
-                    >
-                      Salva nota
+                <Dialog
+                  open={isNoteDialogOpen}
+                  onOpenChange={setIsNoteDialogOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="mr-2 h-4 w-4" /> Aggiungi nota
                     </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Aggiungi nota disciplinare</DialogTitle>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="space-y-2">
+                        <Label>Studente</Label>
+                        <Select
+                          value={newNote.studentId}
+                          onValueChange={(v) =>
+                            setNewNote((p) => ({ ...p, studentId: v }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleziona studente" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {students.map((s: any) => (
+                              <SelectItem key={s.id} value={s.id.toString()}>
+                                {s.firstName} {s.lastName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Tipo</Label>
+                        <Select
+                          value={newNote.type}
+                          onValueChange={(v) =>
+                            setNewNote((p) => ({ ...p, type: v }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="nota">
+                              Nota disciplinare
+                            </SelectItem>
+                            <SelectItem value="sospensione">
+                              Sospensione
+                            </SelectItem>
+                            <SelectItem value="lode">
+                              Lode/Nota di merito
+                            </SelectItem>
+                            <SelectItem value="altro">Altro</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Data</Label>
+                        <Input
+                          type="date"
+                          value={newNote.date}
+                          onChange={(e) =>
+                            setNewNote((p) => ({ ...p, date: e.target.value }))
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Descrizione</Label>
+                        <Textarea
+                          value={newNote.description}
+                          onChange={(e) =>
+                            setNewNote((p) => ({
+                              ...p,
+                              description: e.target.value,
+                            }))
+                          }
+                          rows={4}
+                        />
+                      </div>
+                      <Button
+                        onClick={() =>
+                          createNote.mutate({
+                            studentId: parseInt(newNote.studentId),
+                            teacherId: user.id,
+                            type: newNote.type,
+                            description: newNote.description,
+                            date: newNote.date,
+                          })
+                        }
+                        disabled={
+                          !newNote.studentId ||
+                          !newNote.description ||
+                          createNote.isPending
+                        }
+                      >
+                        Salva nota
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               )}
             </RoleGuard>
           </div>
@@ -902,13 +971,17 @@ export default function Registro() {
                   <Skeleton className="h-16 w-full" />
                   <Skeleton className="h-16 w-full" />
                 </div>
+              ) : notesError ? (
+                <div className="text-center py-8 text-destructive">
+                  Impossibile caricare le note. Riprova più tardi.
+                </div>
               ) : behaviorNotes.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   Nessuna nota registrata.
                 </div>
               ) : (
                 <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-muted-foreground/20 before:to-transparent">
-                  {behaviorNotes.map((note: any) => {
+                  {behaviorNotes.map((note: BehaviorNote) => {
                     const isPositive = note.type === "lode";
                     const isSevere = note.type === "sospensione";
                     const isWarning = note.type === "nota";
@@ -980,7 +1053,12 @@ export default function Registro() {
           <div className="grid gap-4 py-4">
             <div>
               <Label>Studente</Label>
-              <Select value={newGrade.studentId} onValueChange={(v) => setNewGrade((g) => ({ ...g, studentId: v }))}>
+              <Select
+                value={newGrade.studentId}
+                onValueChange={(v) =>
+                  setNewGrade((g) => ({ ...g, studentId: v }))
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleziona studente" />
                 </SelectTrigger>
@@ -995,7 +1073,12 @@ export default function Registro() {
             </div>
             <div>
               <Label>Materia</Label>
-              <Select value={newGrade.subjectId} onValueChange={(v) => setNewGrade((g) => ({ ...g, subjectId: v }))}>
+              <Select
+                value={newGrade.subjectId}
+                onValueChange={(v) =>
+                  setNewGrade((g) => ({ ...g, subjectId: v }))
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Seleziona materia" />
                 </SelectTrigger>
@@ -1017,13 +1100,18 @@ export default function Registro() {
                   min="1"
                   max="10"
                   value={newGrade.value}
-                  onChange={(e) => setNewGrade((g) => ({ ...g, value: e.target.value }))}
+                  onChange={(e) =>
+                    setNewGrade((g) => ({ ...g, value: e.target.value }))
+                  }
                   placeholder="es. 7.5"
                 />
               </div>
               <div>
                 <Label>Tipo</Label>
-                <Select value={newGrade.type} onValueChange={(v) => setNewGrade((g) => ({ ...g, type: v }))}>
+                <Select
+                  value={newGrade.type}
+                  onValueChange={(v) => setNewGrade((g) => ({ ...g, type: v }))}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -1040,14 +1128,18 @@ export default function Registro() {
               <Input
                 type="date"
                 value={newGrade.date}
-                onChange={(e) => setNewGrade((g) => ({ ...g, date: e.target.value }))}
+                onChange={(e) =>
+                  setNewGrade((g) => ({ ...g, date: e.target.value }))
+                }
               />
             </div>
             <div>
               <Label>Descrizione (opzionale)</Label>
               <Textarea
                 value={newGrade.description}
-                onChange={(e) => setNewGrade((g) => ({ ...g, description: e.target.value }))}
+                onChange={(e) =>
+                  setNewGrade((g) => ({ ...g, description: e.target.value }))
+                }
                 placeholder="Commento sul voto..."
               />
             </div>
