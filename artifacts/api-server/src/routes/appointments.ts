@@ -6,8 +6,9 @@ import {
   notificationsTable,
 } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { requireAuth, requireRole, getOrCreateUser } from "./auth";
+import { requireAuth, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
+import { parseId, canSetAppointmentStatus } from "../lib/requestHelpers";
 
 const router = Router();
 
@@ -40,29 +41,32 @@ router.get("/", requireAuth, async (req: any, res: any) => {
     const user = await getOrCreateUser(auth.userId!);
     const filters: any[] = [];
 
-    if (req.query.teacherId)
-      filters.push(
-        eq(
-          appointmentsTable.teacherId,
-          parseInt(req.query.teacherId as string),
-        ),
-      );
-    if (req.query.studentId)
-      filters.push(
-        eq(
-          appointmentsTable.studentId,
-          parseInt(req.query.studentId as string),
-        ),
-      );
-    if (req.query.date)
-      filters.push(eq(appointmentsTable.date, req.query.date as string));
+    const qTeacher =
+      typeof req.query.teacherId === "string"
+        ? parseId(req.query.teacherId)
+        : null;
+    const qStudent =
+      typeof req.query.studentId === "string"
+        ? parseId(req.query.studentId)
+        : null;
+    const qDate = typeof req.query.date === "string" ? req.query.date : null;
 
-    if (filters.length === 0) {
-      if (user.role === "student")
-        filters.push(eq(appointmentsTable.studentId, user.id));
-      else if (user.role === "teacher")
-        filters.push(eq(appointmentsTable.teacherId, user.id));
+    if (user.role === "student") {
+      // Students only ever see their own appointments.
+      filters.push(eq(appointmentsTable.studentId, user.id));
+    } else if (user.role === "teacher") {
+      // Teachers see their own; optionally narrowed to one student.
+      filters.push(eq(appointmentsTable.teacherId, user.id));
+      if (qStudent !== null)
+        filters.push(eq(appointmentsTable.studentId, qStudent));
+    } else {
+      // segreteria / admin: full access with optional filters.
+      if (qTeacher !== null)
+        filters.push(eq(appointmentsTable.teacherId, qTeacher));
+      if (qStudent !== null)
+        filters.push(eq(appointmentsTable.studentId, qStudent));
     }
+    if (qDate) filters.push(eq(appointmentsTable.date, qDate));
 
     const records =
       filters.length > 0
@@ -79,11 +83,52 @@ router.get("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
+// Slot availability without leaking other students' identities/notes:
+// returns only the occupied (non-cancelled) time slots for a teacher+date.
+router.get("/availability", requireAuth, async (req: any, res: any) => {
+  try {
+    const teacherId =
+      typeof req.query.teacherId === "string"
+        ? parseId(req.query.teacherId)
+        : null;
+    const date = typeof req.query.date === "string" ? req.query.date : null;
+    if (teacherId === null || !date) {
+      return res.status(400).json({ error: "teacherId and date are required" });
+    }
+    const rows = await db
+      .select({
+        timeSlot: appointmentsTable.timeSlot,
+        status: appointmentsTable.status,
+      })
+      .from(appointmentsTable)
+      .where(
+        and(
+          eq(appointmentsTable.teacherId, teacherId),
+          eq(appointmentsTable.date, date),
+        ),
+      );
+    const occupied = rows
+      .filter((r) => r.status !== "cancelled")
+      .map((r) => r.timeSlot);
+    res.json({ occupied });
+  } catch (err) {
+    req.log.error({ err }, "Error getting appointment availability");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.post("/", requireAuth, async (req: any, res: any) => {
   try {
+    const auth = getAuth(req);
+    const user = await getOrCreateUser(auth.userId!);
     const { teacherId, studentId, date, timeSlot, notes } = req.body;
     if (!teacherId || !studentId || !date || !timeSlot) {
       return res.status(400).json({ error: "Missing required fields" });
+    }
+    if (user.role === "student" && user.id !== parseInt(String(studentId))) {
+      return res
+        .status(403)
+        .json({ error: "Students can only book for themselves" });
     }
 
     const conflict = await db
@@ -132,15 +177,29 @@ router.post("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.patch("/:id", requireRole(["teacher", "segreteria", "admin"]), async (req: any, res: any) => {
+router.patch("/:id", requireAuth, async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
+    const auth = getAuth(req);
+    const user = await getOrCreateUser(auth.userId!);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
     const { status } = req.body;
 
     if (!["confirmed", "cancelled"].includes(status)) {
       return res
         .status(400)
         .json({ error: "Status must be confirmed or cancelled" });
+    }
+
+    const [existing] = await db
+      .select()
+      .from(appointmentsTable)
+      .where(eq(appointmentsTable.id, id))
+      .limit(1);
+    if (!existing) return res.status(404).json({ error: "Not found" });
+
+    if (!canSetAppointmentStatus(user, existing, status)) {
+      return res.status(403).json({ error: "Forbidden" });
     }
 
     const [record] = await db
