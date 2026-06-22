@@ -12,6 +12,7 @@ import {
   getClerkProxyHost,
 } from "./middlewares/clerkProxyMiddleware";
 import { devAuthMiddleware } from "./middlewares/devAuthMiddleware";
+import { errorHandler, notFoundHandler } from "./middlewares/errorHandler";
 
 const app: Express = express();
 
@@ -71,5 +72,11 @@ if (useDevAuth) {
 }
 
 app.use("/api", router);
+
+// Any unmatched /api route → 404 JSON (kept before the error handler).
+app.use("/api", notFoundHandler);
+
+// Last-resort error handler — consistent { error } shape, never hangs.
+app.use(errorHandler);
 
 export default app;
