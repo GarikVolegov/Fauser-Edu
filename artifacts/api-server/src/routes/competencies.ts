@@ -7,8 +7,9 @@ import {
   usersTable,
 } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import { requireAuth, getOrCreateUser } from "./auth";
+import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
+import { resolveStudentScope, parseId } from "../lib/requestHelpers";
 
 const router = Router();
 
@@ -47,7 +48,7 @@ router.get("/", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.post("/", requireAuth, async (req: any, res: any) => {
+router.post("/", requireRole(["teacher", "admin"]), async (req: any, res: any) => {
   try {
     const { subjectId, name, description } = req.body;
     if (!subjectId || !name)
@@ -77,11 +78,11 @@ router.get("/student", requireAuth, async (req: any, res: any) => {
   try {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);
-    const studentId = req.query.studentId
-      ? parseInt(req.query.studentId as string)
-      : user.role === "student"
-        ? user.id
+    const requestedStudentId =
+      typeof req.query.studentId === "string"
+        ? parseId(req.query.studentId)
         : undefined;
+    const studentId = resolveStudentScope(user, requestedStudentId ?? undefined);
 
     const filters: any[] = [];
     if (studentId)
@@ -125,10 +126,9 @@ router.get("/student", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.post("/student", requireAuth, async (req: any, res: any) => {
+router.post("/student", requireRole(["teacher", "admin"]), async (req: any, res: any) => {
   try {
-    const auth = getAuth(req);
-    const user = await getOrCreateUser(auth.userId!);
+    const user = req.user;
     const { studentId, competencyId, level, date, notes } = req.body;
     if (!studentId || !competencyId || level === undefined || !date)
       return res.status(400).json({ error: "Missing fields" });
