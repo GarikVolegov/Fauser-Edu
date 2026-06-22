@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@clerk/react";
 import { useGetMe, useListUsers } from "@workspace/api-client-react";
+import { useApi } from "@/lib/useApi";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
@@ -36,9 +36,9 @@ type AppointmentType = {
 
 export default function Colloqui() {
   const { data: user } = useGetMe();
-  const { getToken } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const api = useApi();
 
   const [selectedTeacher, setSelectedTeacher] = useState<number | null>(null);
   const [date, setDate] = useState<string>("");
@@ -47,51 +47,38 @@ export default function Colloqui() {
 
   const { data: teachers = [] } = useListUsers({ role: "teacher" } as any);
 
-  const { data: appointments = [] } = useQuery({
-    queryKey: ["appointments"],
-    queryFn: async () => {
-      const token = await getToken();
+  const { data: appointments = [], isError: appointmentsError } = useQuery<
+    AppointmentType[]
+  >({
+    queryKey: ["appointments", user?.id, user?.role],
+    queryFn: () => {
       const param =
         user?.role === "teacher"
           ? `teacherId=${user?.id}`
           : `studentId=${user?.id}`;
-      const r = await fetch(`/api/appointments?${param}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!r.ok) return [];
-      return r.json() as Promise<AppointmentType[]>;
+      return api<AppointmentType[]>(`/api/appointments?${param}`);
     },
     enabled: !!user?.id,
   });
 
-  const { data: teacherAppointments = [] } = useQuery({
-    queryKey: ["appointments", selectedTeacher, date],
-    queryFn: async () => {
-      const token = await getToken();
-      const r = await fetch(
-        `/api/appointments?teacherId=${selectedTeacher}&date=${date}`,
-        { headers: { Authorization: `Bearer ${token}` } },
-      );
-      if (!r.ok) return [];
-      return r.json() as Promise<AppointmentType[]>;
-    },
+  const { data: availability } = useQuery<{ occupied: string[] }>({
+    queryKey: ["appointment-availability", selectedTeacher, date],
+    queryFn: () =>
+      api<{ occupied: string[] }>(
+        `/api/appointments/availability?teacherId=${selectedTeacher}&date=${date}`,
+      ),
     enabled: !!selectedTeacher && !!date,
   });
 
   const createAppointment = useMutation({
-    mutationFn: async (data: any) => {
-      const token = await getToken();
-      const r = await fetch("/api/appointments", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      if (!r.ok) throw new Error("Errore");
-      return r.json();
-    },
+    mutationFn: (data: {
+      teacherId: number;
+      studentId: number;
+      date: string;
+      timeSlot: string;
+      notes: string;
+      status: string;
+    }) => api("/api/appointments", { method: "POST", body: data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       toast({
@@ -103,37 +90,36 @@ export default function Colloqui() {
       setTimeSlot("");
       setNotes("");
     },
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile prenotare il colloquio.",
+        variant: "destructive",
+      });
+    },
   });
 
   const updateStatus = useMutation({
-    mutationFn: async (data: {
-      id: number;
-      status: "confirmed" | "cancelled";
-    }) => {
-      const token = await getToken();
-      const r = await fetch(`/api/appointments/${data.id}`, {
+    mutationFn: (data: { id: number; status: "confirmed" | "cancelled" }) =>
+      api(`/api/appointments/${data.id}`, {
         method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: data.status }),
-      });
-      if (!r.ok) throw new Error("Errore");
-      return r.json();
-    },
+        body: { status: data.status },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["appointments"] });
       toast({ title: "Stato aggiornato" });
     },
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile aggiornare lo stato del colloquio.",
+        variant: "destructive",
+      });
+    },
   });
 
   const timeSlots = ["14:30", "15:00", "15:30", "16:00", "16:30"];
-  const occupiedSlots = new Set(
-    teacherAppointments
-      .filter((a) => a.status !== "cancelled")
-      .map((a) => a.timeSlot),
-  );
+  const occupiedSlots = new Set(availability?.occupied ?? []);
 
   return (
     <div className="space-y-8">
@@ -294,7 +280,11 @@ export default function Colloqui() {
         )}
 
         <TabsContent value="miei-colloqui" className="mt-6 space-y-4">
-          {appointments.length === 0 ? (
+          {appointmentsError ? (
+            <div className="text-center py-8 text-destructive">
+              Impossibile caricare i colloqui. Riprova più tardi.
+            </div>
+          ) : appointments.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed rounded-lg bg-muted/10">
               <CalendarCheck2 className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
               <h3 className="text-lg font-medium">Nessun colloquio</h3>
@@ -355,36 +345,36 @@ export default function Colloqui() {
 
                     <RoleGuard allowedRoles={["teacher", "admin"]}>
                       {app.status === "requested" && (
-                      <div className="flex gap-2 mt-4">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="w-full border-green-200 text-green-700 hover:bg-green-50"
-                          onClick={() =>
-                            updateStatus.mutate({
-                              id: app.id,
-                              status: "confirmed",
-                            })
-                          }
-                          disabled={updateStatus.isPending}
-                        >
-                          <Check className="w-4 h-4 mr-1" /> Conferma
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="w-full border-red-200 text-red-700 hover:bg-red-50"
-                          onClick={() =>
-                            updateStatus.mutate({
-                              id: app.id,
-                              status: "cancelled",
-                            })
-                          }
-                          disabled={updateStatus.isPending}
-                        >
-                          <X className="w-4 h-4 mr-1" /> Annulla
-                        </Button>
-                      </div>
+                        <div className="flex gap-2 mt-4">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full border-green-200 text-green-700 hover:bg-green-50"
+                            onClick={() =>
+                              updateStatus.mutate({
+                                id: app.id,
+                                status: "confirmed",
+                              })
+                            }
+                            disabled={updateStatus.isPending}
+                          >
+                            <Check className="w-4 h-4 mr-1" /> Conferma
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="w-full border-red-200 text-red-700 hover:bg-red-50"
+                            onClick={() =>
+                              updateStatus.mutate({
+                                id: app.id,
+                                status: "cancelled",
+                              })
+                            }
+                            disabled={updateStatus.isPending}
+                          >
+                            <X className="w-4 h-4 mr-1" /> Annulla
+                          </Button>
+                        </div>
                       )}
                     </RoleGuard>
                     {user?.role === "student" && app.status === "requested" && (
