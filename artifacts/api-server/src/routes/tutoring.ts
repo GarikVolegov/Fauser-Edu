@@ -8,6 +8,7 @@ import {
 import { eq, and } from "drizzle-orm";
 import { requireAuth, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
+import { parseId } from "../lib/requestHelpers";
 
 const router = Router();
 
@@ -89,7 +90,10 @@ router.post("/", requireAuth, async (req: any, res: any) => {
 
 router.patch("/:id", requireAuth, async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
+    const auth = getAuth(req);
+    const user = await getOrCreateUser(auth.userId!);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
     const { status } = req.body;
 
     if (!["active", "closed"].includes(status)) {
@@ -99,9 +103,14 @@ router.patch("/:id", requireAuth, async (req: any, res: any) => {
     const [record] = await db
       .update(tutoringPostsTable)
       .set({ status })
-      .where(eq(tutoringPostsTable.id, id))
+      .where(
+        and(
+          eq(tutoringPostsTable.id, id),
+          eq(tutoringPostsTable.authorId, user.id),
+        ),
+      )
       .returning();
-
+    if (!record) return res.status(404).json({ error: "Not found" });
     res.json(await enrichPost(record));
   } catch (err) {
     req.log.error({ err }, "Error updating tutoring post");
@@ -111,8 +120,21 @@ router.patch("/:id", requireAuth, async (req: any, res: any) => {
 
 router.delete("/:id", requireAuth, async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
-    await db.delete(tutoringPostsTable).where(eq(tutoringPostsTable.id, id));
+    const auth = getAuth(req);
+    const user = await getOrCreateUser(auth.userId!);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
+    const deleted = await db
+      .delete(tutoringPostsTable)
+      .where(
+        and(
+          eq(tutoringPostsTable.id, id),
+          eq(tutoringPostsTable.authorId, user.id),
+        ),
+      )
+      .returning();
+    if (deleted.length === 0)
+      return res.status(404).json({ error: "Not found" });
     res.status(204).send();
   } catch (err) {
     req.log.error({ err }, "Error deleting tutoring post");

@@ -1,8 +1,9 @@
 import { Router } from "express";
 import { db, diaryEntriesTable, subjectsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { requireAuth, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
+import { parseId } from "../lib/requestHelpers";
 
 const router = Router();
 
@@ -60,7 +61,10 @@ router.post("/", requireAuth, async (req: any, res: any) => {
 
 router.patch("/:id", requireAuth, async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
+    const auth = getAuth(req);
+    const user = await getOrCreateUser(auth.userId!);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
     const { title, content, subjectId } = req.body;
     const updates: any = { updatedAt: new Date() };
     if (title !== undefined) updates.title = title;
@@ -70,8 +74,14 @@ router.patch("/:id", requireAuth, async (req: any, res: any) => {
     const [entry] = await db
       .update(diaryEntriesTable)
       .set(updates)
-      .where(eq(diaryEntriesTable.id, id))
+      .where(
+        and(
+          eq(diaryEntriesTable.id, id),
+          eq(diaryEntriesTable.userId, user.id),
+        ),
+      )
       .returning();
+    if (!entry) return res.status(404).json({ error: "Not found" });
     res.json(await enrichEntry(entry));
   } catch (err) {
     req.log.error({ err }, "Error updating diary entry");
@@ -81,8 +91,21 @@ router.patch("/:id", requireAuth, async (req: any, res: any) => {
 
 router.delete("/:id", requireAuth, async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
-    await db.delete(diaryEntriesTable).where(eq(diaryEntriesTable.id, id));
+    const auth = getAuth(req);
+    const user = await getOrCreateUser(auth.userId!);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
+    const deleted = await db
+      .delete(diaryEntriesTable)
+      .where(
+        and(
+          eq(diaryEntriesTable.id, id),
+          eq(diaryEntriesTable.userId, user.id),
+        ),
+      )
+      .returning();
+    if (deleted.length === 0)
+      return res.status(404).json({ error: "Not found" });
     res.status(204).send();
   } catch (err) {
     req.log.error({ err }, "Error deleting diary entry");
