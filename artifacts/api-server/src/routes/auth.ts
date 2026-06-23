@@ -1,16 +1,22 @@
-import { Router } from "express";
+import { Router, type Request, type Response, type NextFunction } from "express";
 import { getAuth } from "@clerk/express";
+
+type Role = "student" | "teacher" | "segreteria" | "admin";
+
+/** Minimal shape we read off an auth result (Clerk's getAuth or the dev-auth fn). */
+type AuthResult = { userId?: string | null } | null | undefined;
 import { db } from "@workspace/db";
 import { usersTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 const router = Router();
 
-export const requireAuth = (req: any, res: any, next: any) => {
+export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   const auth = getAuth(req);
   const userId = auth?.userId;
   if (!userId) {
-    return res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json({ error: "Unauthorized" });
+    return;
   }
   req.clerkId = userId;
   next();
@@ -26,29 +32,34 @@ export const requireAuth = (req: any, res: any, next: any) => {
  * Populates req.user with the DB user row (from getOrCreateUser).
  * Returns 401 if unauthenticated, 403 if role not allowed.
  */
-export const requireRole = (allowedRoles: Array<"student" | "teacher" | "segreteria" | "admin">) => {
-  return async (req: any, res: any, next: any) => {
-    // Prefer direct auth fn (devAuth / tests) then fall back to Clerk getAuth
-    let auth: any = null;
-    if (typeof req.auth === "function") {
-      try { auth = req.auth(); } catch { /* ignore */ }
+export const requireRole = (allowedRoles: Role[]) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    // Prefer the dev/test auth function if present, else Clerk's getAuth.
+    // `req.auth` is a callable under devAuthMiddleware and in unit tests, but
+    // Clerk types it differently in prod — read it through a narrow cast.
+    let auth: AuthResult = null;
+    const authProp = (req as { auth?: unknown }).auth;
+    if (typeof authProp === "function") {
+      try { auth = (authProp as () => AuthResult)(); } catch { /* ignore */ }
     }
     if (!auth || !auth.userId) {
       try { auth = getAuth(req); } catch { /* ignore */ }
     }
     const clerkId = auth?.userId;
     if (!clerkId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
+      return;
     }
     const user = await getOrCreateUser(clerkId);
     req.user = user;
     req.clerkId = clerkId;
-    if (!allowedRoles.includes(user.role as any)) {
-      return res.status(403).json({
+    if (!allowedRoles.includes(user.role as Role)) {
+      res.status(403).json({
         error: "Forbidden",
         requiredRoles: allowedRoles,
         currentRole: user.role,
       });
+      return;
     }
     next();
   };
