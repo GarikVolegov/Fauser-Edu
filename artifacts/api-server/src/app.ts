@@ -1,11 +1,14 @@
 import express, { type Express } from "express";
 import cors from "cors";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
 import pinoHttp from "pino-http";
 import cookieParser from "cookie-parser";
 import { clerkMiddleware } from "@clerk/express";
 import { publishableKeyFromHost } from "@clerk/shared/keys";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { parseCorsAllowlist, isAllowedOrigin } from "./lib/corsPolicy";
 import {
   CLERK_PROXY_PATH,
   clerkProxyMiddleware,
@@ -15,6 +18,10 @@ import { devAuthMiddleware } from "./middlewares/devAuthMiddleware";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandler";
 
 const app: Express = express();
+
+// Behind Replit's autoscale proxy: trust one hop so req.ip / rate-limit keys
+// and secure cookies reflect the real client, not the proxy.
+app.set("trust proxy", 1);
 
 app.use(
   pinoHttp({
@@ -36,9 +43,40 @@ app.use(
   }),
 );
 
+// Security headers. CSP is left to the web tier (this server returns JSON);
+// keep the API readable cross-origin by the web app.
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
+
 app.use(CLERK_PROXY_PATH, clerkProxyMiddleware());
 
-app.use(cors({ credentials: true, origin: true }));
+// CORS: reflect only allow-listed origins — never blanket-reflect with
+// credentials. Production must set CORS_ORIGINS (comma-separated); dev defaults
+// to the local web dev server so the split :3100 web / :8080 API works with no env.
+const configuredOrigins = parseCorsAllowlist(process.env.CORS_ORIGINS);
+const corsAllowlist =
+  configuredOrigins.length > 0
+    ? configuredOrigins
+    : process.env.NODE_ENV === "production"
+      ? []
+      : [
+          "http://localhost:3100",
+          "http://127.0.0.1:3100",
+          "http://localhost:8080",
+        ];
+
+app.use(
+  cors({
+    credentials: true,
+    origin(origin, cb) {
+      cb(null, isAllowedOrigin(origin, corsAllowlist));
+    },
+  }),
+);
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -48,6 +86,27 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/api/healthz", (_req, res) => {
   res.json({ status: "ok" });
 });
+
+// Rate limiting — after the public health check so autoscale probes are never
+// throttled, and before auth so it also shields the auth handshake. Keyed by
+// client IP (trust proxy is set above).
+const apiLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 300,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Too many requests" },
+});
+// Tighter cap on the email IMAP/SMTP surface (brute-force / abuse).
+const emailLimiter = rateLimit({
+  windowMs: 60_000,
+  limit: 30,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Too many requests" },
+});
+app.use("/api/email", emailLimiter);
+app.use("/api", apiLimiter);
 
 // In development without Clerk keys, fall back to a mock signed-in user so the
 // app is runnable locally with no secrets. Production (and any env that sets
