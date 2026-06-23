@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@clerk/react";
+import { useApi } from "@/lib/useApi";
+import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,33 +10,45 @@ import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { motion } from "framer-motion";
 
+interface FieldTrip {
+  id: number;
+  title: string;
+  destination: string;
+  date?: string;
+  budget?: number;
+  participantCount?: number;
+  description?: string;
+  teacherName?: string;
+  status: string;
+  myStatus?: string;
+}
+
 export default function UsciteDidattiche() {
-  const { getToken } = useAuth();
+  const api = useApi();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: trips = [], isLoading } = useQuery({
+  const {
+    data: trips = [],
+    isLoading,
+    isError,
+  } = useQuery<FieldTrip[]>({
     queryKey: ["field-trips"],
-    queryFn: async () => {
-      const token = await getToken();
-      const r = await fetch("/api/field-trips", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!r.ok) return [];
-      return r.json();
-    },
+    queryFn: () => api<FieldTrip[]>("/api/field-trips"),
   });
 
   const joinTrip = useMutation({
-    mutationFn: async (id: number) => {
-      const token = await getToken();
-      const r = await fetch(`/api/field-trips/${id}/join`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      return r.json();
-    },
+    mutationFn: (id: number) =>
+      api(`/api/field-trips/${id}/join`, { method: "POST" }),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["field-trips"] }),
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile iscriversi all'uscita.",
+        variant: "destructive",
+      });
+    },
   });
 
   const getStatusBadge = (status: string) => {
@@ -72,6 +85,16 @@ export default function UsciteDidattiche() {
             <Skeleton key={i} className="h-64" />
           ))}
         </div>
+      ) : isError ? (
+        <Card className="flex flex-col items-center justify-center h-48 text-center p-6 border-dashed">
+          <MapPin className="h-10 w-10 text-destructive mb-4 opacity-50" />
+          <CardTitle className="text-lg text-destructive">
+            Errore di caricamento
+          </CardTitle>
+          <p className="text-sm text-muted-foreground mt-1">
+            Impossibile caricare le uscite. Riprova più tardi.
+          </p>
+        </Card>
       ) : trips.length === 0 ? (
         <Card className="flex flex-col items-center justify-center h-48 text-center p-6 border-dashed">
           <MapPin className="h-10 w-10 text-muted-foreground mb-4 opacity-50" />
@@ -79,7 +102,7 @@ export default function UsciteDidattiche() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          {trips.map((trip: any, idx: number) => (
+          {trips.map((trip: FieldTrip, idx: number) => (
             <motion.div
               key={trip.id}
               initial={{ opacity: 0, y: 20 }}

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@clerk/react";
+import { useApi } from "@/lib/useApi";
+import { useToast } from "@/hooks/use-toast";
 import {
   Card,
   CardContent,
@@ -15,42 +16,48 @@ import { Progress } from "@/components/ui/progress";
 import { BarChart3, Clock, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 
+interface PollOption {
+  id: number;
+  text: string;
+  voteCount?: number;
+}
+interface Poll {
+  id: number;
+  question: string;
+  authorName?: string;
+  status: string;
+  myVoteOptionId?: number;
+  options: PollOption[];
+}
+
 export default function Sondaggi() {
-  const { getToken } = useAuth();
+  const api = useApi();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: polls = [], isLoading } = useQuery({
+  const {
+    data: polls = [],
+    isLoading,
+    isError,
+  } = useQuery<Poll[]>({
     queryKey: ["polls"],
-    queryFn: async () => {
-      const token = await getToken();
-      const r = await fetch("/api/polls", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!r.ok) return [];
-      return r.json();
-    },
+    queryFn: () => api<Poll[]>("/api/polls"),
   });
 
   const votePoll = useMutation({
-    mutationFn: async ({
-      pollId,
-      optionId,
-    }: {
-      pollId: number;
-      optionId: number;
-    }) => {
-      const token = await getToken();
-      const r = await fetch(`/api/polls/${pollId}/vote`, {
+    mutationFn: ({ pollId, optionId }: { pollId: number; optionId: number }) =>
+      api(`/api/polls/${pollId}/vote`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ optionId }),
-      });
-      return r.json();
-    },
+        body: { optionId },
+      }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["polls"] }),
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile registrare il voto.",
+        variant: "destructive",
+      });
+    },
   });
 
   return (
@@ -77,7 +84,17 @@ export default function Sondaggi() {
                 <Skeleton key={i} className="h-64" />
               ))}
             </div>
-          ) : polls.filter((p: any) => p.status !== "closed").length === 0 ? (
+          ) : isError ? (
+            <Card className="flex flex-col items-center justify-center h-48 text-center p-6 border-dashed">
+              <BarChart3 className="h-10 w-10 text-destructive mb-4 opacity-50" />
+              <CardTitle className="text-lg text-destructive">
+                Errore di caricamento
+              </CardTitle>
+              <CardDescription>
+                Impossibile caricare i sondaggi. Riprova più tardi.
+              </CardDescription>
+            </Card>
+          ) : polls.filter((p: Poll) => p.status !== "closed").length === 0 ? (
             <Card className="flex flex-col items-center justify-center h-48 text-center p-6 border-dashed">
               <BarChart3 className="h-10 w-10 text-muted-foreground mb-4 opacity-50" />
               <CardTitle className="text-lg">Nessun sondaggio attivo</CardTitle>
@@ -85,10 +102,11 @@ export default function Sondaggi() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {polls
-                .filter((p: any) => p.status !== "closed")
-                .map((poll: any, idx: number) => {
+                .filter((p: Poll) => p.status !== "closed")
+                .map((poll: Poll, idx: number) => {
                   const totalVotes = poll.options.reduce(
-                    (acc: number, opt: any) => acc + (opt.voteCount || 0),
+                    (acc: number, opt: PollOption) =>
+                      acc + (opt.voteCount || 0),
                     0,
                   );
                   const hasVoted = !!poll.myVoteOptionId;
@@ -124,7 +142,7 @@ export default function Sondaggi() {
                                 <CheckCircle2 className="h-4 w-4 text-green-500" />{" "}
                                 Hai già votato
                               </div>
-                              {poll.options.map((opt: any) => {
+                              {poll.options.map((opt: PollOption) => {
                                 const percent =
                                   totalVotes > 0
                                     ? ((opt.voteCount || 0) / totalVotes) * 100
@@ -160,7 +178,7 @@ export default function Sondaggi() {
                             </div>
                           ) : (
                             <div className="space-y-3">
-                              {poll.options.map((opt: any) => (
+                              {poll.options.map((opt: PollOption) => (
                                 <Button
                                   key={opt.id}
                                   variant="outline"
