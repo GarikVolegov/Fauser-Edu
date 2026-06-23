@@ -2,6 +2,7 @@ import { Router } from "express";
 import { db, scheduleTable, subjectsTable, usersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireAuth, requireRole } from "./auth";
+import { parseId } from "../lib/requestHelpers";
 
 const router = Router();
 
@@ -90,8 +91,14 @@ router.post("/", requireRole(["segreteria", "admin"]), async (req: any, res: any
 
 router.delete("/:id", requireRole(["segreteria", "admin"]), async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
-    await db.delete(scheduleTable).where(eq(scheduleTable.id, id));
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
+    const deleted = await db
+      .delete(scheduleTable)
+      .where(eq(scheduleTable.id, id))
+      .returning();
+    if (deleted.length === 0)
+      return res.status(404).json({ error: "Not found" });
     res.status(204).send();
   } catch (err) {
     req.log.error({ err }, "Error deleting schedule entry");

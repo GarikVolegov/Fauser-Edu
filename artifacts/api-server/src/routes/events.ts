@@ -8,6 +8,7 @@ import {
   UpdateEventBody,
   ListEventsQueryParams,
 } from "@workspace/api-zod";
+import { parseId } from "../lib/requestHelpers";
 
 const router = Router();
 
@@ -67,7 +68,8 @@ router.post("/", requireRole(["teacher", "segreteria", "admin"]), async (req: an
 
 router.patch("/:id", requireRole(["teacher", "segreteria", "admin"]), async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
     const parsed = UpdateEventBody.safeParse(req.body);
     if (!parsed.success)
       return res.status(400).json({ error: "Invalid input" });
@@ -76,6 +78,7 @@ router.patch("/:id", requireRole(["teacher", "segreteria", "admin"]), async (req
       .set(parsed.data)
       .where(eq(eventsTable.id, id))
       .returning();
+    if (!event) return res.status(404).json({ error: "Not found" });
     res.json({ ...event, createdAt: event.createdAt.toISOString() });
   } catch (err) {
     req.log.error({ err }, "Error updating event");
@@ -85,8 +88,14 @@ router.patch("/:id", requireRole(["teacher", "segreteria", "admin"]), async (req
 
 router.delete("/:id", requireRole(["teacher", "segreteria", "admin"]), async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
-    await db.delete(eventsTable).where(eq(eventsTable.id, id));
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
+    const deleted = await db
+      .delete(eventsTable)
+      .where(eq(eventsTable.id, id))
+      .returning();
+    if (deleted.length === 0)
+      return res.status(404).json({ error: "Not found" });
     res.status(204).send();
   } catch (err) {
     req.log.error({ err }, "Error deleting event");

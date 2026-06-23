@@ -3,6 +3,7 @@ import { db, roomsTable, roomBookingsTable, usersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
+import { parseId } from "../lib/requestHelpers";
 
 const router = Router();
 
@@ -126,8 +127,23 @@ router.post("/bookings", requireAuth, async (req: any, res: any) => {
 
 router.delete("/bookings/:id", requireAuth, async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
-    await db.delete(roomBookingsTable).where(eq(roomBookingsTable.id, id));
+    const auth = getAuth(req);
+    const user = await getOrCreateUser(auth.userId!);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
+    const isStaff = ["segreteria", "admin"].includes(user.role);
+    const where = isStaff
+      ? eq(roomBookingsTable.id, id)
+      : and(
+          eq(roomBookingsTable.id, id),
+          eq(roomBookingsTable.teacherId, user.id),
+        );
+    const deleted = await db
+      .delete(roomBookingsTable)
+      .where(where)
+      .returning();
+    if (deleted.length === 0)
+      return res.status(404).json({ error: "Not found" });
     res.status(204).send();
   } catch (err) {
     req.log.error({ err }, "Error deleting room booking");

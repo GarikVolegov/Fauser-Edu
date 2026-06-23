@@ -3,6 +3,7 @@ import { db, classesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth, requireRole } from "./auth";
 import { CreateClassBody, UpdateClassBody } from "@workspace/api-zod";
+import { parseId } from "../lib/requestHelpers";
 
 const router = Router();
 
@@ -33,7 +34,8 @@ router.post("/", requireRole(["admin"]), async (req: any, res: any) => {
 
 router.get("/:id", requireAuth, async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
     const [cls] = await db
       .select()
       .from(classesTable)
@@ -49,7 +51,8 @@ router.get("/:id", requireAuth, async (req: any, res: any) => {
 
 router.patch("/:id", requireRole(["admin"]), async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
     const parsed = UpdateClassBody.safeParse(req.body);
     if (!parsed.success)
       return res.status(400).json({ error: "Invalid input" });
@@ -58,6 +61,7 @@ router.patch("/:id", requireRole(["admin"]), async (req: any, res: any) => {
       .set(parsed.data)
       .where(eq(classesTable.id, id))
       .returning();
+    if (!cls) return res.status(404).json({ error: "Not found" });
     res.json({ ...cls, createdAt: cls.createdAt.toISOString() });
   } catch (err) {
     req.log.error({ err }, "Error updating class");
@@ -67,8 +71,14 @@ router.patch("/:id", requireRole(["admin"]), async (req: any, res: any) => {
 
 router.delete("/:id", requireRole(["admin"]), async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
-    await db.delete(classesTable).where(eq(classesTable.id, id));
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
+    const deleted = await db
+      .delete(classesTable)
+      .where(eq(classesTable.id, id))
+      .returning();
+    if (deleted.length === 0)
+      return res.status(404).json({ error: "Not found" });
     res.status(204).send();
   } catch (err) {
     req.log.error({ err }, "Error deleting class");

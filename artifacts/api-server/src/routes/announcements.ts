@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
 import { CreateAnnouncementBody } from "@workspace/api-zod";
+import { parseId } from "../lib/requestHelpers";
 
 const router = Router();
 
@@ -55,7 +56,8 @@ router.post("/", requireRole(["teacher", "segreteria", "admin"]), async (req: an
 
 router.get("/:id", requireAuth, async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
     const [announcement] = await db
       .select()
       .from(announcementsTable)
