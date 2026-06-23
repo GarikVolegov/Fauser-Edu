@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@clerk/react";
+import { useApi } from "@/lib/useApi";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,8 +10,17 @@ import { BookOpen, Plus, Search } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 
+interface DiaryEntry {
+  id: number;
+  title: string;
+  content: string;
+  subjectName?: string;
+  updatedAt: string;
+}
+
 export default function Diario() {
-  const { getToken } = useAuth();
+  const api = useApi();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [title, setTitle] = useState("");
@@ -18,66 +28,68 @@ export default function Diario() {
   const [search, setSearch] = useState("");
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { data: entries = [], isLoading } = useQuery({
+  const {
+    data: entries = [],
+    isLoading,
+    isError,
+  } = useQuery<DiaryEntry[]>({
     queryKey: ["diary"],
-    queryFn: async () => {
-      const token = await getToken();
-      const r = await fetch("/api/diary", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!r.ok) return [];
-      return r.json();
-    },
+    queryFn: () => api<DiaryEntry[]>("/api/diary"),
   });
 
   const createEntry = useMutation({
-    mutationFn: async () => {
-      const token = await getToken();
-      const r = await fetch("/api/diary", {
+    mutationFn: () =>
+      api<DiaryEntry>("/api/diary", {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ title: "Nuova nota", content: "" }),
-      });
-      return r.json();
-    },
+        body: { title: "Nuova nota", content: "" },
+      }),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["diary"] });
       setSelectedId(data.id);
       setTitle(data.title);
       setContent(data.content);
     },
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile creare la nota.",
+        variant: "destructive",
+      });
+    },
   });
 
   const updateEntry = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      const token = await getToken();
-      const r = await fetch(`/api/diary/${id}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      return r.json();
-    },
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: { title: string; content: string };
+    }) => api<DiaryEntry>(`/api/diary/${id}`, { method: "PATCH", body: data }),
     onSuccess: (data) => {
-      queryClient.setQueryData(["diary"], (old: any) =>
-        old?.map((e: any) => (e.id === data.id ? data : e)),
+      queryClient.setQueryData(["diary"], (old: DiaryEntry[] | undefined) =>
+        old?.map((e) => (e.id === data.id ? data : e)),
       );
+    },
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile salvare la nota.",
+        variant: "destructive",
+      });
     },
   });
 
-  const selectedEntry = entries.find((e: any) => e.id === selectedId);
+  const selectedEntry = entries.find((e) => e.id === selectedId);
 
   useEffect(() => {
     if (selectedEntry) {
       setTitle(selectedEntry.title || "");
       setContent(selectedEntry.content || "");
     }
+    // Re-sync editor fields only when a different entry is selected (by id).
+    // Depending on the whole selectedEntry would clobber in-progress edits on refetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, selectedEntry?.id]);
 
   const handleSave = () => {
@@ -99,7 +111,7 @@ export default function Diario() {
   };
 
   const filteredEntries = entries.filter(
-    (e: any) =>
+    (e) =>
       e.title?.toLowerCase().includes(search.toLowerCase()) ||
       e.subjectName?.toLowerCase().includes(search.toLowerCase()),
   );
@@ -139,12 +151,16 @@ export default function Diario() {
                 <Skeleton key={i} className="h-16 w-full" />
               ))}
             </div>
+          ) : isError ? (
+            <div className="p-8 text-center text-destructive text-sm">
+              Impossibile caricare il diario. Riprova più tardi.
+            </div>
           ) : filteredEntries.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground text-sm">
               Nessuna nota trovata.
             </div>
           ) : (
-            filteredEntries.map((e: any) => (
+            filteredEntries.map((e) => (
               <div
                 key={e.id}
                 onClick={() => setSelectedId(e.id)}

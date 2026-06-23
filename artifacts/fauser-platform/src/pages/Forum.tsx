@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@clerk/react";
+import { useApi } from "@/lib/useApi";
+import { useToast } from "@/hooks/use-toast";
 import {
   Card,
   CardContent,
@@ -33,55 +35,68 @@ function timeAgo(dateStr: string) {
   return `${Math.floor(mins / 1440)}g fa`;
 }
 
+interface ForumThread {
+  id: number;
+  title: string;
+  subjectName?: string;
+  authorName?: string;
+  authorId?: string | number;
+  createdAt: string;
+  lastReplyAt?: string;
+  replyCount?: number;
+}
+interface ForumPost {
+  id: number;
+  authorId?: string | number;
+  authorName: string;
+  content: string;
+  createdAt: string;
+}
+
 export default function Forum() {
-  const { getToken, userId } = useAuth();
+  const { userId } = useAuth();
+  const api = useApi();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedThread, setSelectedThread] = useState<any | null>(null);
+  const [selectedThread, setSelectedThread] = useState<ForumThread | null>(
+    null,
+  );
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const { data: threads = [], isLoading: threadsLoading } = useQuery({
+  const {
+    data: threads = [],
+    isLoading: threadsLoading,
+    isError: threadsError,
+  } = useQuery<ForumThread[]>({
     queryKey: ["forum-threads"],
-    queryFn: async () => {
-      const token = await getToken();
-      const r = await fetch("/api/forum/threads", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!r.ok) return [];
-      return r.json();
-    },
+    queryFn: () => api<ForumThread[]>("/api/forum/threads"),
   });
 
-  const { data: posts = [], isLoading: postsLoading } = useQuery({
+  const { data: posts = [], isLoading: postsLoading } = useQuery<ForumPost[]>({
     queryKey: ["forum-posts", selectedThread?.id],
     enabled: !!selectedThread?.id,
-    queryFn: async () => {
-      const token = await getToken();
-      const r = await fetch(`/api/forum/threads/${selectedThread.id}/posts`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!r.ok) return [];
-      return r.json();
-    },
+    queryFn: () =>
+      api<ForumPost[]>(`/api/forum/threads/${selectedThread!.id}/posts`),
   });
 
   const createPost = useMutation({
-    mutationFn: async (content: string) => {
-      const token = await getToken();
-      const r = await fetch(`/api/forum/threads/${selectedThread.id}/posts`, {
+    mutationFn: (content: string) =>
+      api(`/api/forum/threads/${selectedThread!.id}/posts`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ content }),
-      });
-      return r.json();
-    },
+        body: { content },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["forum-posts", selectedThread.id],
+        queryKey: ["forum-posts", selectedThread!.id],
       });
       queryClient.invalidateQueries({ queryKey: ["forum-threads"] });
+    },
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile inviare il messaggio.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -118,7 +133,7 @@ export default function Forum() {
               ))}
             </div>
           ) : (
-            posts.map((p: any) => {
+            posts.map((p: ForumPost) => {
               const isMine = p.authorId === userId;
               return (
                 <div
@@ -228,6 +243,15 @@ export default function Forum() {
             <Skeleton key={i} className="h-24 w-full" />
           ))}
         </div>
+      ) : threadsError ? (
+        <Card className="flex flex-col items-center justify-center h-48 text-center p-6 border-dashed">
+          <CardTitle className="text-lg text-destructive">
+            Errore di caricamento
+          </CardTitle>
+          <CardDescription>
+            Impossibile caricare le discussioni. Riprova più tardi.
+          </CardDescription>
+        </Card>
       ) : threads.length === 0 ? (
         <Card className="flex flex-col items-center justify-center h-48 text-center p-6 border-dashed">
           <MessageSquare className="h-10 w-10 text-muted-foreground mb-4" />
@@ -238,7 +262,7 @@ export default function Forum() {
         </Card>
       ) : (
         <div className="space-y-3">
-          {threads.map((t: any, idx: number) => (
+          {threads.map((t: ForumThread, idx: number) => (
             <motion.div
               key={t.id}
               initial={{ opacity: 0, y: 10 }}

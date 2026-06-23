@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@clerk/react";
+import { useApi } from "@/lib/useApi";
 import { useGetMe, useListSubjects } from "@workspace/api-client-react";
 import {
   Card,
@@ -48,7 +48,7 @@ type TutoringPostType = {
 
 export default function Tutoraggio() {
   const { data: user } = useGetMe();
-  const { getToken } = useAuth();
+  const api = useApi();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -64,57 +64,52 @@ export default function Tutoraggio() {
 
   const { data: subjects = [] } = useListSubjects();
 
-  const { data: posts = [], isLoading } = useQuery({
+  const {
+    data: posts = [],
+    isLoading,
+    isError,
+  } = useQuery<TutoringPostType[]>({
     queryKey: ["tutoring"],
-    queryFn: async () => {
-      const token = await getToken();
-      const r = await fetch(`/api/tutoring`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!r.ok) return [];
-      return r.json() as Promise<TutoringPostType[]>;
-    },
+    queryFn: () => api<TutoringPostType[]>("/api/tutoring"),
   });
 
   const createPost = useMutation({
-    mutationFn: async (data: any) => {
-      const token = await getToken();
-      const r = await fetch("/api/tutoring", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      if (!r.ok) throw new Error("Errore");
-      return r.json();
-    },
+    mutationFn: (data: {
+      subjectId: number;
+      type: string;
+      description: string;
+    }) => api("/api/tutoring", { method: "POST", body: data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tutoring"] });
       toast({ title: "Annuncio pubblicato" });
       setIsDialogOpen(false);
       setNewPost({ subjectId: "", type: "offre", description: "" });
     },
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile pubblicare l'annuncio.",
+        variant: "destructive",
+      });
+    },
   });
 
   const closePost = useMutation({
-    mutationFn: async (id: number) => {
-      const token = await getToken();
-      const r = await fetch(`/api/tutoring/${id}`, {
+    mutationFn: (id: number) =>
+      api(`/api/tutoring/${id}`, {
         method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: "closed" }),
-      });
-      if (!r.ok) throw new Error("Errore");
-      return r.json();
-    },
+        body: { status: "closed" },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tutoring"] });
       toast({ title: "Annuncio chiuso" });
+    },
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile chiudere l'annuncio.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -183,7 +178,7 @@ export default function Tutoraggio() {
                     <SelectValue placeholder="Seleziona materia" />
                   </SelectTrigger>
                   <SelectContent>
-                    {subjects.map((s: any) => (
+                    {subjects.map((s) => (
                       <SelectItem key={s.id} value={s.id.toString()}>
                         {s.name}
                       </SelectItem>
@@ -240,7 +235,7 @@ export default function Tutoraggio() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tutte le materie</SelectItem>
-            {subjects.map((s: any) => (
+            {subjects.map((s) => (
               <SelectItem key={s.id} value={s.id.toString()}>
                 {s.name}
               </SelectItem>
@@ -249,7 +244,21 @@ export default function Tutoraggio() {
         </Select>
       </div>
 
-      {filteredPosts.length === 0 ? (
+      {isError ? (
+        <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed rounded-lg bg-muted/5">
+          <Users2 className="h-12 w-12 text-destructive mb-4 opacity-50" />
+          <h3 className="text-lg font-medium text-destructive">
+            Errore di caricamento
+          </h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Impossibile caricare gli annunci. Riprova più tardi.
+          </p>
+        </div>
+      ) : isLoading ? (
+        <div className="flex flex-col items-center justify-center p-12 text-center text-muted-foreground">
+          Caricamento…
+        </div>
+      ) : filteredPosts.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 text-center border-2 border-dashed rounded-lg bg-muted/5">
           <Users2 className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
           <h3 className="text-lg font-medium">Nessun annuncio</h3>
