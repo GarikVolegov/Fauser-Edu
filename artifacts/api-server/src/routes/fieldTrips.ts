@@ -8,6 +8,7 @@ import {
 import { eq, and } from "drizzle-orm";
 import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
+import { parseId } from "../lib/requestHelpers";
 
 const router = Router();
 
@@ -79,17 +80,18 @@ router.post("/", requireRole(["teacher", "segreteria", "admin"]), async (req: an
   }
 });
 
-router.patch("/:id/status", requireAuth, async (req: any, res: any) => {
+router.patch("/:id/status", requireRole(["teacher", "segreteria", "admin"]), async (req: any, res: any) => {
   try {
-    const auth = getAuth(req);
-    const user = await getOrCreateUser(auth.userId!);
-    const id = parseInt(req.params.id);
+    const user = req.user;
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
     const { status } = req.body;
     const [trip] = await db
       .update(fieldTripsTable)
       .set({ status })
       .where(eq(fieldTripsTable.id, id))
       .returning();
+    if (!trip) return res.status(404).json({ error: "Not found" });
     res.json(await enrichTrip(trip, user.id));
   } catch (err) {
     req.log.error({ err }, "Error updating field trip status");
@@ -101,7 +103,16 @@ router.post("/:id/join", requireAuth, async (req: any, res: any) => {
   try {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);
-    const fieldTripId = parseInt(req.params.id);
+    const fieldTripId = parseId(req.params.id);
+    if (fieldTripId === null)
+      return res.status(400).json({ error: "Invalid id" });
+
+    const [tripExists] = await db
+      .select()
+      .from(fieldTripsTable)
+      .where(eq(fieldTripsTable.id, fieldTripId))
+      .limit(1);
+    if (!tripExists) return res.status(404).json({ error: "Not found" });
 
     const existing = await db
       .select()
@@ -141,11 +152,13 @@ router.post("/:id/join", requireAuth, async (req: any, res: any) => {
 
 router.patch(
   "/:id/participants/:studentId",
-  requireAuth,
+  requireRole(["teacher", "segreteria", "admin"]),
   async (req: any, res: any) => {
     try {
-      const fieldTripId = parseInt(req.params.id);
-      const studentId = parseInt(req.params.studentId);
+      const fieldTripId = parseId(req.params.id);
+      const studentId = parseId(req.params.studentId);
+      if (fieldTripId === null || studentId === null)
+        return res.status(400).json({ error: "Invalid id" });
       const { status } = req.body;
 
       const [part] = await db
@@ -158,6 +171,7 @@ router.patch(
           ),
         )
         .returning();
+      if (!part) return res.status(404).json({ error: "Not found" });
 
       const [student] = await db
         .select()
@@ -180,7 +194,9 @@ router.patch(
 
 router.get("/:id/participants", requireAuth, async (req: any, res: any) => {
   try {
-    const fieldTripId = parseInt(req.params.id);
+    const fieldTripId = parseId(req.params.id);
+    if (fieldTripId === null)
+      return res.status(400).json({ error: "Invalid id" });
     const parts = await db
       .select()
       .from(fieldTripParticipantsTable)

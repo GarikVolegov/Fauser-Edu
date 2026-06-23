@@ -9,6 +9,7 @@ import {
 import { eq, and } from "drizzle-orm";
 import { requireAuth, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
+import { parseId } from "../lib/requestHelpers";
 
 const router = Router();
 
@@ -94,7 +95,9 @@ router.post("/threads", requireAuth, async (req: any, res: any) => {
 
 router.get("/threads/:id/posts", requireAuth, async (req: any, res: any) => {
   try {
-    const threadId = parseInt(req.params.id);
+    const threadId = parseId(req.params.id);
+    if (threadId === null)
+      return res.status(400).json({ error: "Invalid id" });
     const posts = await db
       .select()
       .from(forumPostsTable)
@@ -121,9 +124,18 @@ router.post("/threads/:id/posts", requireAuth, async (req: any, res: any) => {
   try {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);
-    const threadId = parseInt(req.params.id);
+    const threadId = parseId(req.params.id);
+    if (threadId === null)
+      return res.status(400).json({ error: "Invalid id" });
     const { content } = req.body;
     if (!content) return res.status(400).json({ error: "Missing content" });
+
+    const [thread] = await db
+      .select()
+      .from(forumThreadsTable)
+      .where(eq(forumThreadsTable.id, threadId))
+      .limit(1);
+    if (!thread) return res.status(404).json({ error: "Thread not found" });
 
     const [post] = await db
       .insert(forumPostsTable)

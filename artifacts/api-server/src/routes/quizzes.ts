@@ -12,6 +12,7 @@ import {
 import { eq, and } from "drizzle-orm";
 import { requireAuth, requireRole, getOrCreateUser } from "./auth";
 import { getAuth } from "@clerk/express";
+import { parseId } from "../lib/requestHelpers";
 
 const router = Router();
 
@@ -106,7 +107,8 @@ router.post("/", requireRole(["teacher", "admin"]), async (req: any, res: any) =
 
 router.get("/:id", requireAuth, async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
     const [quiz] = await db
       .select()
       .from(quizzesTable)
@@ -157,13 +159,15 @@ router.get("/:id", requireAuth, async (req: any, res: any) => {
 
 router.patch("/:id", requireRole(["teacher", "admin"]), async (req: any, res: any) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: "Invalid id" });
     const { status } = req.body;
     const [quiz] = await db
       .update(quizzesTable)
       .set({ status })
       .where(eq(quizzesTable.id, id))
       .returning();
+    if (!quiz) return res.status(404).json({ error: "Not found" });
     res.json(await enrichQuiz(quiz));
   } catch (err) {
     req.log.error({ err }, "Error updating quiz");
@@ -173,7 +177,8 @@ router.patch("/:id", requireRole(["teacher", "admin"]), async (req: any, res: an
 
 router.post("/:id/questions", requireRole(["teacher", "admin"]), async (req: any, res: any) => {
   try {
-    const quizId = parseInt(req.params.id);
+    const quizId = parseId(req.params.id);
+    if (quizId === null) return res.status(400).json({ error: "Invalid id" });
     const {
       text,
       type = "multiple_choice",
@@ -181,6 +186,13 @@ router.post("/:id/questions", requireRole(["teacher", "admin"]), async (req: any
       choices = [],
     } = req.body;
     if (!text) return res.status(400).json({ error: "Missing text" });
+
+    const [quizExists] = await db
+      .select()
+      .from(quizzesTable)
+      .where(eq(quizzesTable.id, quizId))
+      .limit(1);
+    if (!quizExists) return res.status(404).json({ error: "Not found" });
 
     const existing = await db
       .select()
@@ -216,8 +228,16 @@ router.post("/:id/submit", requireAuth, async (req: any, res: any) => {
   try {
     const auth = getAuth(req);
     const user = await getOrCreateUser(auth.userId!);
-    const quizId = parseInt(req.params.id);
+    const quizId = parseId(req.params.id);
+    if (quizId === null) return res.status(400).json({ error: "Invalid id" });
     const { answers } = req.body;
+
+    const [quizExists] = await db
+      .select()
+      .from(quizzesTable)
+      .where(eq(quizzesTable.id, quizId))
+      .limit(1);
+    if (!quizExists) return res.status(404).json({ error: "Not found" });
 
     const questions = await db
       .select()
@@ -279,9 +299,10 @@ router.post("/:id/submit", requireAuth, async (req: any, res: any) => {
   }
 });
 
-router.get("/:id/responses", requireAuth, async (req: any, res: any) => {
+router.get("/:id/responses", requireRole(["teacher", "admin"]), async (req: any, res: any) => {
   try {
-    const quizId = parseInt(req.params.id);
+    const quizId = parseId(req.params.id);
+    if (quizId === null) return res.status(400).json({ error: "Invalid id" });
     const responses = await db
       .select()
       .from(quizResponsesTable)
