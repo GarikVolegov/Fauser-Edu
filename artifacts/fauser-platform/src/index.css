@@ -64,6 +64,15 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* Fauser brand extended palette — study-path accents + status + tech */
+  --color-path-informatica: var(--path-informatica);
+  --color-path-logistica: var(--path-logistica);
+  --color-path-aeronautica: var(--path-aeronautica);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
+  --color-cyan-tech: var(--cyan-tech);
 }
 
 /* LIGHT MODE */
@@ -107,8 +116,9 @@
   --muted: 210 40% 96%;
   --muted-foreground: 215 16% 47%;
 
-  --accent: 45 93% 47%;
-  --accent-foreground: 222 47% 11%;
+  /* Institutional azure (#2072bb) — Fauser brand action/accent (was gold) */
+  --accent: 208 71% 43%;
+  --accent-foreground: 210 40% 98%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 210 40% 98%;
@@ -122,9 +132,10 @@
   --chart-4: 142 71% 45%;
   --chart-5: 0 84% 60%;
 
-  --app-font-sans: "Inter", sans-serif;
-  --app-font-serif: Georgia, serif;
-  --app-font-mono: Menlo, monospace;
+  --app-font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --app-font-serif: "IBM Plex Serif", Georgia, serif;
+  --app-font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --radius: 0.5rem;
 
   --primary-border: hsl(
@@ -155,6 +166,48 @@
     from hsl(var(--sidebar-accent)) h s
       calc(l + var(--opaque-button-border-intensity)) / alpha
   );
+
+  /* ─── Fauser brand extended tokens (from the Design System) ───────
+     Institutional palette sampled from the school logo. Brand
+     constants — identical in light & dark. Use the semantic shadcn
+     tokens above for core UI; reach for these for study-path accents,
+     status surfaces and on-dark logo metals. */
+  --navy-institutional: #00264c; /* official fauser.edu theme-color */
+  --navy-900: #070f1c;
+  --navy-800: #0a1628;
+  --navy-700: #0b2545;
+  --navy-600: #0f2541;
+
+  --blue-600: #185a93;
+  --blue-500: #2072bb; /* institutional azure — action/accent */
+  --blue-400: #3d8fd4; /* luminous on dark */
+  --blue-050: #eef4fb;
+
+  --cyan-tech: #58c9ec; /* logo circuit accent */
+  --silver-400: #aab6c0;
+  --silver-300: #dde3e6;
+
+  /* Study-path (indirizzo) accents */
+  --path-informatica: #1d4ed8;
+  --path-informatica-bg: #eff6ff;
+  --path-logistica: #b45309;
+  --path-logistica-bg: #fffbeb;
+  --path-aeronautica: #0891b2;
+  --path-aeronautica-bg: #ecfeff;
+
+  /* Semantic status — voto ≥ 6 green / voto < 6 red */
+  --success: #16a34a;
+  --success-bg: #f0fdf4;
+  --warning: #f59e0b;
+  --warning-bg: #fffbeb;
+  --danger: #ef4444;
+  --danger-bg: #fef2f2;
+  --info: #0ea5e9;
+  --info-bg: #f0f9ff;
+
+  /* Signature gradients */
+  --grad-hero: linear-gradient(140deg, #1a2128 0%, #243140 52%, #1f4a78 100%);
+  --grad-action: linear-gradient(135deg, #2072bb 0%, #13456f 100%);
 }
 
 .dark {
@@ -197,7 +250,8 @@
   --muted: 217 33% 17%;
   --muted-foreground: 215 20% 65%;
 
-  --accent: 45 93% 47%;
+  /* Luminous azure (#3d8fd4) — Fauser brand action/accent on dark (was gold) */
+  --accent: 207 64% 54%;
   --accent-foreground: 222 47% 11%;
 
   --destructive: 0 62% 30%;

@@ -107,7 +107,7 @@ const clerkAppearance = {
     colorInput: "hsl(0 0% 100%)",
     colorInputForeground: "hsl(222 47% 11%)",
     colorNeutral: "hsl(214 32% 91%)",
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "'IBM Plex Sans', sans-serif",
     borderRadius: "0.5rem",
   },
   elements: {
