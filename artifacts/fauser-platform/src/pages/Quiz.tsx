@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@clerk/react";
+import { useApi } from "@/lib/useApi";
+import { useToast } from "@/hooks/use-toast";
 import {
   useGetMe,
   useListClasses,
@@ -39,44 +40,68 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { motion } from "framer-motion";
 import { Plus, PlayCircle, CheckCircle2, Clock } from "lucide-react";
 
+interface QuizItem {
+  id: number;
+  title: string;
+  subjectName?: string;
+  className?: string;
+  duration: number;
+  questionsCount?: number;
+}
+interface QuizDetailData {
+  id: number;
+  title: string;
+  subjectName?: string;
+  duration: number;
+}
+interface QuizChoice {
+  id: number;
+  text: string;
+}
+interface QuizQuestion {
+  id: number;
+  text: string;
+  type: string;
+  choices?: QuizChoice[];
+}
+
 export default function Quiz() {
   const { data: user } = useGetMe();
-  const { getToken } = useAuth();
+  const api = useApi();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedQuizId, setSelectedQuizId] = useState<number | null>(null);
 
-  const { data: quizzes = [], isLoading } = useQuery({
+  const {
+    data: quizzes = [],
+    isLoading,
+    isError: quizzesError,
+  } = useQuery<QuizItem[]>({
     queryKey: ["quizzes"],
-    queryFn: async () => {
-      const token = await getToken();
-      const r = await fetch("/api/quizzes", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!r.ok) return [];
-      return r.json();
-    },
+    queryFn: () => api<QuizItem[]>("/api/quizzes"),
   });
 
   const { data: subjects } = useListSubjects();
   const { data: classes } = useListClasses();
 
   const createQuiz = useMutation({
-    mutationFn: async (data: any) => {
-      const token = await getToken();
-      const r = await fetch("/api/quizzes", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      return r.json();
-    },
+    mutationFn: (data: {
+      title: FormDataEntryValue | null;
+      subjectId: number;
+      classId: number;
+      duration: number;
+    }) => api("/api/quizzes", { method: "POST", body: data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["quizzes"] });
       setIsDialogOpen(false);
+    },
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile creare il quiz.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -91,7 +116,10 @@ export default function Quiz() {
     });
   };
 
-  const isTeacher = user?.role === "admin" || user?.role === "teacher" || user?.role === "segreteria";
+  const isTeacher =
+    user?.role === "admin" ||
+    user?.role === "teacher" ||
+    user?.role === "segreteria";
 
   if (selectedQuizId) {
     return (
@@ -114,74 +142,74 @@ export default function Quiz() {
         </div>
         <RoleGuard allowedRoles={["teacher", "segreteria", "admin"]}>
           {isTeacher && (
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" /> Nuovo Quiz
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Crea Nuovo Quiz</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleCreate} className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Titolo</Label>
-                  <Input
-                    name="title"
-                    required
-                    placeholder="Es. Verifica di Storia"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Materia</Label>
-                  <Select name="subjectId" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleziona materia" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {subjects?.map((s) => (
-                        <SelectItem key={s.id} value={s.id.toString()}>
-                          {s.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Classe</Label>
-                  <Select name="classId" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleziona classe" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {classes?.map((c: any) => (
-                        <SelectItem key={c.id} value={c.id.toString()}>
-                          {c.anno}
-                          {c.sezione}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Durata (minuti)</Label>
-                  <Input
-                    type="number"
-                    name="duration"
-                    required
-                    defaultValue={30}
-                    min={1}
-                  />
-                </div>
-                <DialogFooter>
-                  <Button type="submit" disabled={createQuiz.isPending}>
-                    Crea Quiz
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" /> Nuovo Quiz
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Crea Nuovo Quiz</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleCreate} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Titolo</Label>
+                    <Input
+                      name="title"
+                      required
+                      placeholder="Es. Verifica di Storia"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Materia</Label>
+                    <Select name="subjectId" required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona materia" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subjects?.map((s) => (
+                          <SelectItem key={s.id} value={s.id.toString()}>
+                            {s.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Classe</Label>
+                    <Select name="classId" required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleziona classe" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {classes?.map((c: any) => (
+                          <SelectItem key={c.id} value={c.id.toString()}>
+                            {c.anno}
+                            {c.sezione}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Durata (minuti)</Label>
+                    <Input
+                      type="number"
+                      name="duration"
+                      required
+                      defaultValue={30}
+                      min={1}
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button type="submit" disabled={createQuiz.isPending}>
+                      Crea Quiz
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
           )}
         </RoleGuard>
       </div>
@@ -202,6 +230,15 @@ export default function Quiz() {
                 <Skeleton key={i} className="h-40" />
               ))}
             </div>
+          ) : quizzesError ? (
+            <Card className="flex flex-col items-center justify-center h-48 text-center p-6 border-dashed">
+              <CardTitle className="text-lg text-destructive">
+                Errore di caricamento
+              </CardTitle>
+              <CardDescription>
+                Impossibile caricare i quiz. Riprova più tardi.
+              </CardDescription>
+            </Card>
           ) : quizzes.length === 0 ? (
             <Card className="flex flex-col items-center justify-center h-48 text-center p-6 border-dashed">
               <CheckCircle2 className="h-10 w-10 text-muted-foreground mb-4" />
@@ -212,7 +249,7 @@ export default function Quiz() {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {quizzes.map((q: any, idx: number) => (
+              {quizzes.map((q: QuizItem, idx: number) => (
                 <motion.div
                   key={q.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -276,32 +313,23 @@ function QuizDetail({
   onBack: () => void;
   userRole?: string;
 }) {
-  const { getToken } = useAuth();
+  const api = useApi();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
-  const { data: quiz, isLoading } = useQuery({
+  const {
+    data: quiz,
+    isLoading,
+    isError: quizError,
+  } = useQuery<QuizDetailData>({
     queryKey: ["quiz", quizId],
-    queryFn: async () => {
-      const token = await getToken();
-      const r = await fetch(`/api/quizzes/${quizId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!r.ok) return null;
-      return r.json();
-    },
+    queryFn: () => api<QuizDetailData>(`/api/quizzes/${quizId}`),
   });
 
-  const { data: questions = [] } = useQuery({
+  const { data: questions = [] } = useQuery<QuizQuestion[]>({
     queryKey: ["quiz-questions", quizId],
-    queryFn: async () => {
-      const token = await getToken();
-      const r = await fetch(`/api/quizzes/${quizId}/questions`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!r.ok) return [];
-      return r.json();
-    },
+    queryFn: () => api<QuizQuestion[]>(`/api/quizzes/${quizId}/questions`),
   });
 
   const isTeacher = userRole === "admin" || userRole === "teacher";
@@ -322,23 +350,26 @@ function QuizDetail({
   }, [timeLeft]);
 
   const addQuestion = useMutation({
-    mutationFn: async (data: any) => {
-      const token = await getToken();
-      const r = await fetch(`/api/quizzes/${quizId}/questions`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      return r.json();
-    },
+    mutationFn: (data: { text: FormDataEntryValue | null; type: string }) =>
+      api(`/api/quizzes/${quizId}/questions`, { method: "POST", body: data }),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["quiz-questions", quizId] }),
+    onError: () => {
+      toast({
+        title: "Errore",
+        description: "Impossibile aggiungere la domanda.",
+        variant: "destructive",
+      });
+    },
   });
 
   if (isLoading) return <Skeleton className="h-64" />;
+  if (quizError)
+    return (
+      <div className="py-12 text-center text-destructive">
+        Impossibile caricare il quiz. Riprova più tardi.
+      </div>
+    );
   if (!quiz) return <div>Quiz non trovato</div>;
 
   return (
@@ -364,7 +395,7 @@ function QuizDetail({
       </div>
 
       <div className="space-y-8">
-        {questions.map((q: any, i: number) => (
+        {questions.map((q: QuizQuestion, i: number) => (
           <Card key={q.id}>
             <CardHeader>
               <CardTitle className="text-lg">Domanda {i + 1}</CardTitle>
@@ -375,7 +406,7 @@ function QuizDetail({
             <CardContent>
               {q.type === "multiple_choice" ? (
                 <RadioGroup className="space-y-3">
-                  {q.choices?.map((c: any) => (
+                  {q.choices?.map((c: QuizChoice) => (
                     <div
                       key={c.id}
                       className="flex items-center space-x-3 bg-muted/30 p-3 rounded-md border"
